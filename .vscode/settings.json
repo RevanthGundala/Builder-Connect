@@ -1,8 +1,0 @@
-{
-  "rust-analyzer.linkedProjects": [
-    "./builder-connect/Cargo.toml",
-    "./builder-connect/Cargo.toml",
-    "./builder-connect/Cargo.toml",
-    "./builder-connect/Cargo.toml"
-  ]
-}
