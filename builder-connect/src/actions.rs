@@ -17,10 +17,13 @@ use crate::handlers::*;
 // TODO: matching algo
 
 // can swipe left or right on other user
-pub async fn swipe_left(db: web::Data<Pool>, sender_id: i32, other_user_id: i32) -> Result<HttpResponse, Error> {
-    let sender = get_user_by_id(db, sender_id).await.unwrap();
+pub async fn swipe_left(db: web::Data<Pool>, sender_id: web::Path<i32>, other_user_id: web::Path<i32>) -> Result<HttpResponse, Error> {
+    let sender = get_user_by_id(db, sender_id).await.expect("DB error").unwrap();
     let updated_sender = InputUser {
-        left_swipes: Some(sender.left_swipes.unwrap().push(other_user_id)),
+        left_swipes: sender.unwrap().left_swipes.map(|mut left_swipes| {
+            left_swipes.push(other_user_id.into_inner());
+            left_swipes
+        }),
         ..sender
     };
     let other_user = get_user_by_id(db, other_user_id).await.unwrap();
@@ -33,10 +36,27 @@ pub async fn swipe_left(db: web::Data<Pool>, sender_id: i32, other_user_id: i32)
     (sender_res, other_user_res)
 }
 
-// if both users swipe right, they are matched
-
+pub async fn swipe_right(db: web::Data<Pool>, sender_id: i32, other_user_id: i32) -> Result<HttpResponse, Error> {
+    let sender = get_user_by_id(db, sender_id).await.unwrap();
+    let updated_sender = InputUser {
+        right_swipes: Some(sender.right_swipes.unwrap().push(other_user_id)),
+        ..sender
+    };
+    let other_user = get_user_by_id(db, other_user_id).await.unwrap();
+    let updated_other_user = InputUser {
+        incoming_right_swipes: Some(other_user.incoming_right_swipes.unwrap().push(sender_id)),
+        ..other_user
+    };
+    let sender_res = update_user(db, sender_id, sender).await;
+    let other_user_res = update_user(db, other_user_id, other_user).await;
+    (sender_res, other_user_res)
+}
 
 // user can view their matches
+pub async fn view_profile(db: web::Data<Pool>, user_id: i32) -> Result<HttpResponse, Error> {
+    let res = get_user_by_id(db, user_id).await.unwrap();
+    res
+}
 
 // user can view their profile and other people's profiles
 

@@ -53,14 +53,13 @@ pub async fn get_users(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
 pub async fn get_user_by_id(
     db: web::Data<Pool>,
     user_id: web::Path<i32>,
-) -> Result<HttpResponse, Error> {
+) -> Result<Option<User>, Error> {
     let outer_result = web::block(move || db_get_user_by_id(db, user_id.into_inner())).await;
     match outer_result {
-        Ok(inner_result) => 
-        match inner_result {
-            Ok(user) => Ok(HttpResponse::Ok().json(user)),
+        Ok(inner_result) => match inner_result {
+            Ok(user) => Ok(Some(user)),
             Err(_) => Err(ServiceError::InternalServerError.into()),
-        },
+        }
         Err(_) => Err(ServiceError::InternalServerError.into()),
     }
 }
@@ -85,14 +84,13 @@ pub async fn update_user(
     db: web::Data<Pool>,
     user_id: web::Path<i32>,
     updated_user: web::Json<InputUser>,
-) -> Result<HttpResponse, Error> {
+) -> Result<User, Error> {
     let outer_result = web::block(move || update_single_user(db, user_id.into_inner(), updated_user)).await;
     match outer_result {
-        Ok(inner_result) => 
-        match inner_result {
-            Ok(user) => Ok(HttpResponse::Ok().json(user)),
+        Ok(inner_result) => match inner_result {
+            Ok(user) => Ok(user),
             Err(_) => Err(ServiceError::InternalServerError.into()),
-        },
+        }
         Err(_) => Err(ServiceError::InternalServerError.into()),
     }
 }
@@ -160,6 +158,7 @@ fn add_single_user(
     Ok(res)
 }
 
+// TODO: Update this to use the new InputUser struct
 fn update_single_user(
     db: web::Data<Pool>,
     user_id: i32,

@@ -10,6 +10,7 @@ mod errors;
 mod handlers;
 mod models;
 mod schema;
+mod actions;
 
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
