@@ -5,6 +5,7 @@ use actix_web::{dev::ServiceRequest, web::{self, Data}, App, Error, HttpServer};
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
 
+mod actions;
 mod auth;
 mod errors;
 mod handlers;
