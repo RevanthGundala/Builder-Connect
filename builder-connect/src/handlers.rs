@@ -4,6 +4,7 @@ use super::Pool;
 use crate::diesel::prelude::*;
 use crate::errors::ServiceError;
 use actix_web::{web, Error, HttpResponse};
+use argonautica::input;
 use diesel::dsl::{delete, insert_into, update};
 use serde::{Deserialize, Serialize};
 use std::vec::Vec;
@@ -13,6 +14,26 @@ pub struct InputUser {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
+    pub github: Option<String>, // if they are non-technical...
+    pub website: Option<String>, // if they are non-technical...
+    pub age: Option<i32>, 
+    pub age_weight: Option<i32>,
+    pub location: Option<String>,
+    pub location_weight: Option<i32>,
+    pub employer: Option<String>, // school / work / etc
+    pub employer_weight: Option<i32>,
+    pub reason: Option<String>, // why they want to join (personal project/startup)
+    pub project_interests: Option<String>, // what they're interested in (crpyo, ML, etc)
+    pub project_interests_weight: Option<i32>,
+    pub personality_interests: Option<String>,
+    pub personality_interests_weight: Option<i32>,
+    pub skills: Option<String>, // what tech stack they want to work on (web dev, ML, etc)
+    pub skills_weight: Option<i32>,
+    pub right_swipes: Option<Vec<i32>>, // list of user's ids who this user has swiped right on
+    pub left_swipes: Option<Vec<i32>>, // list of user's ids who this user has swiped left on
+    pub incoming_right_swipes: Option<Vec<i32>>, // list of user's ids who have swiped right on this user
+    pub incoming_left_swipes: Option<Vec<i32>>, // list of user's ids who have swiped left on this user
+    pub matches: Option<Vec<i32>>, // list of 
 }
 
 // Handler for GET /users
@@ -108,11 +129,32 @@ fn add_single_user(
     user: web::Json<InputUser>,
 ) -> Result<User, diesel::result::Error> {
     let conn = db.get().unwrap();
+    let input_user = user.into_inner();
     let new_user = NewUser {
-        first_name: &user.first_name,
-        last_name: &user.last_name,
-        email: &user.email,
+        first_name: &input_user.first_name,
+        last_name: &input_user.last_name,
+        email: &input_user.email,
         created_at: chrono::Local::now().naive_local(),
+        github: input_user.github.as_deref(),
+        website: input_user.website.as_deref(),
+        age: check_if_null(input_user.age.unwrap_or(0)),
+        age_weight: check_if_null(input_user.age_weight.unwrap_or(0)),
+        location: input_user.location.as_deref(),
+        location_weight: check_if_null(input_user.location_weight.unwrap_or(0)),
+        employer: input_user.employer.as_deref(),
+        employer_weight: check_if_null(input_user.employer_weight.unwrap_or(0)),
+        reason: input_user.reason.as_deref(),
+        project_interests: input_user.project_interests.as_deref(),
+        project_interests_weight: check_if_null(input_user.project_interests_weight.unwrap_or(0)),
+        personality_interests: input_user.personality_interests.as_deref(),
+        personality_interests_weight: check_if_null(input_user.personality_interests_weight.unwrap_or(0)),
+        skills: input_user.skills.as_deref(),
+        skills_weight: check_if_null(input_user.skills_weight.unwrap_or(0)),
+        right_swipes: input_user.right_swipes,
+        left_swipes: input_user.left_swipes,
+        incoming_right_swipes: input_user.incoming_right_swipes,
+        incoming_left_swipes: input_user.incoming_left_swipes,
+        matches: input_user.matches,
     };
     let res = insert_into(users).values(&new_user).get_result(&conn)?;
     Ok(res)
@@ -125,7 +167,31 @@ fn update_single_user(
 ) -> Result<User, diesel::result::Error> {
     let conn = db.get().unwrap();
     let res: User = update(users.find(user_id))
-        .set((first_name.eq(&updated_user.first_name), last_name.eq(&updated_user.last_name), email.eq(&updated_user.email)))
+        .set(
+            (first_name.eq(&updated_user.first_name), 
+            last_name.eq(&updated_user.last_name), 
+            email.eq(&updated_user.email),
+            github.eq(updated_user.github.as_deref()),
+            website.eq(updated_user.website.as_deref()),
+            age.eq(check_if_null(updated_user.age.unwrap_or(0))),
+            age_weight.eq(check_if_null(updated_user.age_weight.unwrap_or(0))),
+            location.eq(updated_user.location.as_deref()),
+            location_weight.eq(check_if_null(updated_user.location_weight.unwrap_or(0))),
+            employer.eq(updated_user.employer.as_deref()),
+            employer_weight.eq(check_if_null(updated_user.employer_weight.unwrap_or(0))),
+            reason.eq(updated_user.reason.as_deref()),
+            project_interests.eq(updated_user.project_interests.as_deref()),
+            project_interests_weight.eq(check_if_null(updated_user.project_interests_weight.unwrap_or(0))),
+            personality_interests.eq(updated_user.personality_interests.as_deref()),
+            personality_interests_weight.eq(check_if_null(updated_user.personality_interests_weight.unwrap_or(0))),
+            skills.eq(updated_user.skills.as_deref()),
+            skills_weight.eq(check_if_null(updated_user.skills_weight.unwrap_or(0))),
+            right_swipes.eq(updated_user.right_swipes.as_deref()),
+            left_swipes.eq(updated_user.left_swipes.as_deref()),
+            incoming_right_swipes.eq(updated_user.incoming_right_swipes.as_deref()),
+            incoming_left_swipes.eq(updated_user.incoming_left_swipes.as_deref()),
+            matches.eq(updated_user.matches.as_deref()),  
+        ))
         .get_result(&conn)?;
     Ok(res)
 }
@@ -134,4 +200,11 @@ fn delete_single_user(db: web::Data<Pool>, user_id: i32) -> Result<usize, diesel
     let conn = db.get().unwrap();
     let count = delete(users.find(user_id)).execute(&conn)?;
     Ok(count)
+}
+
+fn check_if_null(input: i32) -> Option<i32> {
+    match input {
+        0 => None,
+        _ => Some(input),
+    }
 }

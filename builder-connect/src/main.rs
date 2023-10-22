@@ -50,7 +50,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         let auth = HttpAuthentication::bearer(validator);
         App::new()
-            .wrap(auth)
+            // .wrap(auth)
             .app_data(Data::new(pool.clone()))
             .route("/users", web::get().to(handlers::get_users))
             .route("/users/{id}", web::get().to(handlers::get_user_by_id))
