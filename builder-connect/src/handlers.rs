@@ -8,6 +8,7 @@ use argonautica::input;
 use diesel::dsl::{delete, insert_into, update};
 use serde::{Deserialize, Serialize};
 use std::vec::Vec;
+use std::sync::Arc;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InputUser {
@@ -36,6 +37,36 @@ pub struct InputUser {
     pub matches: Option<Vec<i32>>, // list of 
 }
 
+impl From<User> for InputUser {
+    fn from(user: User) -> InputUser {
+        InputUser{
+            first_name: user.first_name.clone(),
+            last_name: user.last_name.clone(),
+            email: user.email.clone(),
+            github: user.github.clone(),
+            website: user.website.clone(),
+            age: user.age,
+            age_weight: user.age_weight,
+            location: user.location.clone(),
+            location_weight: user.location_weight,
+            employer: user.employer.clone(),
+            employer_weight: user.employer_weight,
+            reason: user.reason.clone(),
+            project_interests: user.project_interests.clone(),
+            project_interests_weight: user.project_interests_weight,
+            personality_interests: user.personality_interests.clone(),
+            personality_interests_weight: user.personality_interests_weight,
+            skills: user.skills.clone(),
+            skills_weight: user.skills_weight,
+            right_swipes: user.right_swipes.clone(),
+            left_swipes: user.left_swipes.clone(),
+            incoming_right_swipes: user.incoming_right_swipes.clone(),
+            incoming_left_swipes: user.incoming_left_swipes.clone(),
+            matches: user.matches.clone(),
+        }
+    }
+}
+
 // Handler for GET /users
 pub async fn get_users(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
     let outer_result = web::block(move || get_all_users(db)).await;
@@ -52,14 +83,11 @@ pub async fn get_users(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
 // Handler for GET /users/{id}
 pub async fn get_user_by_id(
     db: web::Data<Pool>,
-    user_id: web::Path<i32>,
-) -> Result<Option<User>, Error> {
-    let outer_result = web::block(move || db_get_user_by_id(db, user_id.into_inner())).await;
-    match outer_result {
-        Ok(inner_result) => match inner_result {
-            Ok(user) => Ok(Some(user)),
-            Err(_) => Err(ServiceError::InternalServerError.into()),
-        }
+    user_id: i32,
+) -> Result<User, Error> {
+    let user = web::block(move || db_get_user_by_id(db, user_id)).await;
+    match user {
+        Ok(user) => Ok(user),
         Err(_) => Err(ServiceError::InternalServerError.into()),
     }
 }
@@ -82,15 +110,16 @@ pub async fn add_user(
 
 pub async fn update_user(
     db: web::Data<Pool>,
-    user_id: web::Path<i32>,
-    updated_user: web::Json<InputUser>,
-) -> Result<User, Error> {
-    let outer_result = web::block(move || update_single_user(db, user_id.into_inner(), updated_user)).await;
+    user_id: i32,
+    updated_user: InputUser,
+) -> Result<HttpResponse, Error> {
+    let outer_result = web::block(move || update_single_user(db, user_id, updated_user)).await;
     match outer_result {
-        Ok(inner_result) => match inner_result {
-            Ok(user) => Ok(user),
+        Ok(inner_result) => 
+        match inner_result {
+            Ok(user) => Ok(HttpResponse::Ok().json(user)),
             Err(_) => Err(ServiceError::InternalServerError.into()),
-        }
+        },
         Err(_) => Err(ServiceError::InternalServerError.into()),
     }
 }
@@ -111,9 +140,9 @@ pub async fn delete_user(
     }
 }
 
-fn db_get_user_by_id(pool: web::Data<Pool>, user_id: i32) -> Result<User, diesel::result::Error> {
+fn db_get_user_by_id(pool: web::Data<Pool>, user_id: i32) -> User {
     let conn = pool.get().unwrap();
-    users.find(user_id).get_result::<User>(&conn)
+    users.find(user_id).get_result::<User>(&conn).expect("Error loading user")
 }
 
 fn get_all_users(pool: web::Data<Pool>) -> Result<Vec<User>, diesel::result::Error> {
@@ -158,11 +187,10 @@ fn add_single_user(
     Ok(res)
 }
 
-// TODO: Update this to use the new InputUser struct
 fn update_single_user(
     db: web::Data<Pool>,
     user_id: i32,
-    updated_user: web::Json<InputUser>,
+    updated_user: InputUser,
 ) -> Result<User, diesel::result::Error> {
     let conn = db.get().unwrap();
     let res: User = update(users.find(user_id))
