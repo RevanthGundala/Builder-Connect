@@ -49,7 +49,7 @@ async fn main() -> std::io::Result<()> {
 
     // Start http server
     HttpServer::new(move || {
-        let auth = HttpAuthentication::bearer(validator);
+        let _auth = HttpAuthentication::bearer(validator);
         App::new()
             // .wrap(auth)
             .app_data(Data::new(pool.clone()))

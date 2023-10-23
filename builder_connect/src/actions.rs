@@ -1,14 +1,14 @@
-use super::models::{NewUser, User};
-use super::schema::users::dsl::*;
+
+
 use super::Pool;
-use crate::diesel::prelude::*;
-use crate::errors::ServiceError;
+
+
 use actix_web::web::Json;
 use actix_web::{web, Error, HttpResponse};
-use argonautica::input;
-use serde::{Deserialize, Serialize};
-use std::vec::Vec;
-use std::sync::Arc;
+
+
+
+
 
 use crate::handlers::*;
 // user logs in (TODO: AUTH)
