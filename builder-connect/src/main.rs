@@ -54,10 +54,10 @@ async fn main() -> std::io::Result<()> {
             // .wrap(auth)
             .app_data(Data::new(pool.clone()))
             .route("/users", web::get().to(handlers::get_users))
-            .route("/users/{id}", web::get().to(handlers::get_user_by_id))
+            .route("/users/{id}", web::get().to(actions::view_profile))
             .route("/users", web::post().to(handlers::add_user))
-            .route("/users/{id}", web::put().to(handlers::update_user))
-            .route("/users/{id}", web::delete().to(handlers::delete_user))
+            .route("/users/{id}", web::put().to(actions::edit_profile))
+            .route("/users/{id}", web::delete().to(actions::delete_profile))
     })
     .bind("127.0.0.1:8080")?
     .run()

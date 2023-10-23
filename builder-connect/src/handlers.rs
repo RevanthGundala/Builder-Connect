@@ -127,9 +127,9 @@ pub async fn update_user(
 // // Handler for DELETE /users/{id}
 pub async fn delete_user(
     db: web::Data<Pool>,
-    user_id: web::Path<i32>,
+    user_id: i32,
 ) -> Result<HttpResponse, Error> {
-    let outer_result = web::block(move || delete_single_user(db, user_id.into_inner())).await;
+    let outer_result = web::block(move || delete_single_user(db, user_id)).await;
     match outer_result {
         Ok(inner_result) => 
         match inner_result {
