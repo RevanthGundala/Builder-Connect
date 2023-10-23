@@ -11,7 +11,6 @@ mod errors;
 mod handlers;
 mod models;
 mod schema;
-mod actions;
 
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
@@ -59,6 +58,7 @@ async fn main() -> std::io::Result<()> {
             .route("/users", web::post().to(handlers::add_user))
             .route("/users/{id}", web::put().to(actions::edit_profile))
             .route("/users/{id}", web::delete().to(actions::delete_profile))
+            .route("/actions/swipe_left/{sender_id}/{other_user_id}", web::post().to(actions::swipe_left))
     })
     .bind("127.0.0.1:8080")?
     .run()

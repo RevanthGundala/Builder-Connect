@@ -1,16 +1,8 @@
-
-
 use super::Pool;
-
-
 use actix_web::web::Json;
 use actix_web::{web, Error, HttpResponse};
-
-
-
-
-
 use crate::handlers::*;
+
 // user logs in (TODO: AUTH)
 
 // user creates profile (handler calls create_user)
@@ -19,7 +11,7 @@ use crate::handlers::*;
 // TODO: matching algo
 
 // can swipe left or right on other user
-pub async fn swipe_left(db: web::Data<Pool>, sender_id: web::Path<i32>, other_user_id: web::Path<i32>) -> (Result<HttpResponse, Error>, Result<HttpResponse, Error>) {
+pub async fn swipe_left(db: web::Data<Pool>, sender_id: web::Path<i32>, other_user_id: web::Path<i32>) -> Result<HttpResponse, Error> {
     let (sender_id, other_user_id) = (sender_id.into_inner(), other_user_id.into_inner());
 
     let mut sender = get_user_by_id(db.clone(), sender_id)
@@ -43,7 +35,7 @@ pub async fn swipe_left(db: web::Data<Pool>, sender_id: web::Path<i32>, other_us
 
     let sender_res = update_user(db.clone(), sender_id, updated_sender).await;
     let other_user_res = update_user(db.clone(), other_user_id, updated_other_user).await;
-    (sender_res, other_user_res)
+    sender_res
 }
 
 pub async fn swipe_right(db: web::Data<Pool>, sender_id: web::Path<i32>, other_user_id: web::Path<i32>) -> (Result<HttpResponse, Error>, Result<HttpResponse, Error>) {

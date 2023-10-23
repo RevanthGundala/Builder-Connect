@@ -38,7 +38,7 @@ pub struct InputUser {
 }
 
 impl From<User> for InputUser {
-    fn from(user: User) -> InputUser {
+    fn from(user: User) -> Self {
         InputUser{
             first_name: user.first_name.clone(),
             last_name: user.last_name.clone(),
@@ -63,6 +63,36 @@ impl From<User> for InputUser {
             incoming_right_swipes: user.incoming_right_swipes.clone(),
             incoming_left_swipes: user.incoming_left_swipes.clone(),
             matches: user.matches.clone(),
+        }
+    }
+}
+
+impl Default for InputUser {
+    fn default() -> Self {
+        InputUser{
+            first_name: "".to_string(),
+            last_name: "".to_string(),
+            email: "".to_string(),
+            github: None,
+            website: None,
+            age: None,
+            age_weight: None,
+            location: None,
+            location_weight: None,
+            employer: None,
+            employer_weight: None,
+            reason: None,
+            project_interests: None,
+            project_interests_weight: None,
+            personality_interests: None,
+            personality_interests_weight: None,
+            skills: None,
+            skills_weight: None,
+            right_swipes: None,
+            left_swipes: None,
+            incoming_right_swipes: None,
+            incoming_left_swipes: None,
+            matches: None,
         }
     }
 }
@@ -98,6 +128,7 @@ pub async fn add_user(
     user: web::Json<InputUser>,
 ) -> Result<HttpResponse, Error> {
     let outer_result = web::block(move || add_single_user(db, user)).await;
+    println!("outer_result: {:?}", outer_result);
     match outer_result {
         Ok(inner_result) => 
         match inner_result {
@@ -233,5 +264,47 @@ fn check_if_null(input: i32) -> Option<i32> {
     match input {
         0 => None,
         _ => Some(input),
+    }
+}
+
+
+#[cfg(test)]
+mod tests{
+    use super::*;
+    use actix_web::{web::{self, Data}, App, test};
+    use diesel::r2d2::{self, ConnectionManager};
+    pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
+
+    #[actix_rt::test]
+    async fn test_insert() {
+        dotenv::dotenv().ok();
+        let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    
+        // create db connection pool
+        let manager = ConnectionManager::<PgConnection>::new(database_url);
+        let pool: Pool = r2d2::Pool::builder()
+            .build(manager)
+            .expect("Failed to create pool.");
+        let mut app = test::init_service(
+            App::new()
+                .app_data(Data::new(pool.clone()))
+                .route("/users", web::post().to(add_user)),
+        )
+        .await;
+        // let conn = &app.data().get().unwrap().get().unwrap();
+        let user = InputUser {
+            first_name: "First".to_string(),
+            last_name: "Last".to_string(),
+            email: "first.last@gmail.com".to_string(),
+            ..InputUser::default()
+        };
+
+        let result = test::TestRequest::post()
+            .uri("/users")
+            .set_json(&user)
+            .to_request();
+        let resp = test::call_service(&mut app, result).await;
+        // Check the response status
+        assert_eq!(resp.status(), 200);
     }
 }
