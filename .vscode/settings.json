@@ -3,6 +3,9 @@
     "./builder-connect/Cargo.toml",
     "./builder-connect/Cargo.toml",
     "./builder-connect/Cargo.toml",
+    "./builder-connect/Cargo.toml",
+    "./builder-connect/Cargo.toml",
     "./builder-connect/Cargo.toml"
-  ]
+  ],
+  "rust-analyzer.showUnlinkedFileNotification": false
 }
