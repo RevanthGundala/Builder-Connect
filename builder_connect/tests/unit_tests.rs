@@ -3,7 +3,7 @@ use actix_web::{http::StatusCode, test, App};
 use diesel::prelude::*;
 
 use serde_json::json;
-use super::models::{NewUser, User};
+use crate::models::*;
 use super::schema::users::dsl::*;
 use super::Pool;
 use crate::errors::ServiceError;
