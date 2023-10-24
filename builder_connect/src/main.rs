@@ -1,66 +1,25 @@
-#[macro_use]
-extern crate diesel;
-
-use actix_web::{dev::ServiceRequest, web::{self, Data}, App, Error, HttpServer};
-use diesel::prelude::*;
-use diesel::r2d2::{self, ConnectionManager};
-
-mod actions;
-mod auth;
-mod errors;
-mod handlers;
+mod api;
 mod models;
-mod schema;
+mod repository;
 
-pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
+//modify imports below
+use actix_web::{web::Data, App, HttpServer};
+use api::user_api::*;
+use repository::mongodb_repo::MongoRepo;
 
-use actix_web_httpauth::extractors::bearer::{BearerAuth, Config};
-use actix_web_httpauth::extractors::AuthenticationError;
-use actix_web_httpauth::middleware::HttpAuthentication;
-
-async fn validator(req: ServiceRequest, credentials: BearerAuth) -> Result<ServiceRequest, (Error, ServiceRequest)> {
-    let config = req
-                .app_data::<Config>()
-                .cloned()
-                .unwrap_or_default()
-                .scope("");
-    match auth::validate_token(credentials.token()) {
-        Ok(res) => {
-            if res == true {
-                Ok(req)
-            } else {
-                Err((AuthenticationError::from(config).into(), req))
-            }
-        }
-        Err(_) => Err((AuthenticationError::from(config).into(), req)),
-    }
-}
-
-#[actix_rt::main]
+#[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    dotenv::dotenv().ok();
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
-    // create db connection pool
-    let manager = ConnectionManager::<PgConnection>::new(database_url);
-    let pool: Pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
-
-    // Start http server
+    let db = MongoRepo::init().await;
+    let db_data = Data::new(db);
     HttpServer::new(move || {
-        let _auth = HttpAuthentication::bearer(validator);
         App::new()
-            // .wrap(auth)
-            .app_data(Data::new(pool.clone()))
-            .route("/users", web::get().to(handlers::get_users))
-            .route("/users/{id}", web::get().to(actions::view_profile))
-            .route("/users", web::post().to(handlers::add_user))
-            .route("/users/{id}", web::put().to(actions::edit_profile))
-            .route("/users/{id}", web::delete().to(actions::delete_profile))
-            .route("/actions/swipe_left/{sender_id}/{other_user_id}", web::post().to(actions::swipe_left))
+            .app_data(db_data.clone())
+            .service(create_profile)
+            .service(get_profile)
+            .service(edit_profile) 
+            .service(delete_profile) 
     })
-    .bind("127.0.0.1:8080")?
+    .bind(("127.0.0.1", 8080))?
     .run()
     .await
 }
