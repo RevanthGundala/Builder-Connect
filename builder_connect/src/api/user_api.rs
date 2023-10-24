@@ -45,7 +45,7 @@ pub async fn create_profile(db: Data<MongoRepo>, new_user: Json<User>) -> HttpRe
 }
 
 #[get("/profile/{id}")]
-pub async fn get_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
+pub async fn view_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
     let id = path.into_inner();
     if id.is_empty() {
         return HttpResponse::BadRequest().body("invalid ID");

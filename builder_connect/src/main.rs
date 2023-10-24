@@ -2,6 +2,8 @@ mod api;
 mod models;
 mod repository;
 
+use crate::api::user_actions::*;
+
 //modify imports below
 use actix_web::{web::Data, App, HttpServer};
 use api::user_api::*;
@@ -15,9 +17,12 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(db_data.clone())
             .service(create_profile)
-            .service(get_profile)
+            .service(view_profile)
             .service(edit_profile) 
             .service(delete_profile) 
+            .service(swipe_left)
+            .service(swipe_right)
+            .service(view_matches)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
