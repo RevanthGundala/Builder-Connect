@@ -1,11 +1,11 @@
 {
   "rust-analyzer.linkedProjects": [
-    "./builder-connect/Cargo.toml",
-    "./builder-connect/Cargo.toml",
-    "./builder-connect/Cargo.toml",
-    "./builder-connect/Cargo.toml",
-    "./builder-connect/Cargo.toml",
-    "./builder-connect/Cargo.toml"
+    "./builder_connect/Cargo.toml",
+    "./builder_connect/Cargo.toml",
+    "./builder_connect/Cargo.toml",
+    "./builder_connect/Cargo.toml",
+    "./builder_connect/Cargo.toml",
+    "./builder_connect/Cargo.toml"
   ],
   "rust-analyzer.showUnlinkedFileNotification": false
 }

@@ -53,7 +53,7 @@ impl UserView {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
@@ -69,11 +69,11 @@ pub struct User {
     pub project_interests: Option<String>, // what they're interested in (crpyo, ML, etc)
     pub personality_interests: Option<String>,
     pub skills: Option<String>, // what tech stack they want to work on (web dev, ML, etc)
-    pub right_swipes: Option<Vec<i32>>, // list of user's ids who this user has swiped right on
-    pub left_swipes: Option<Vec<i32>>, // list of user's ids who this user has swiped left on
+    pub right_swipes: Option<Vec<String>>, // list of user's ids who this user has swiped right on
+    pub left_swipes: Option<Vec<String>>, // list of user's ids who this user has swiped left on
     pub incoming_right_swipes: Option<Vec<i32>>, 
     pub incoming_left_swipes: Option<Vec<i32>>, // list of user's ids who have swiped right on this user
-    pub matches: Option<Vec<i32>>, // list of user
+    pub matches: Option<Vec<String>>, // list of user
     pub public_fields: UserView, // list of fields that are public
 }
 
