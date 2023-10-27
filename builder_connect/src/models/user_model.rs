@@ -1,6 +1,6 @@
 use mongodb::bson::oid::ObjectId;
 use serde::{Serialize, Deserialize};
-use mongodb::bson::{Bson, Document, doc, bson};
+use mongodb::bson::doc;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Viewability {
@@ -24,26 +24,36 @@ pub struct UserView{
     pub skills: Viewability,
 }
 
-impl UserView {
-    fn default() -> Self {
-        UserView{
-            id: Viewability::Private,
-            first_name: Viewability::Public,
-            last_name: Viewability::Public,
-            email: Viewability::Public,
-            github: Viewability::Public,
-            website: Viewability::Public,
-            age: Viewability::Public,
-            location: Viewability::Public,
-            employer: Viewability::Public,
-            reason: Viewability::Public,
-            project_interests: Viewability::Public,
-            personality_interests: Viewability::Public,
-            skills: Viewability::Public,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct VectorEmbedding{
+    pub age: Vec<f32>,
+    pub location: Vec<f32>,
+    pub employer: Vec<f32>,
+    pub reason: Vec<f32>,
+    pub project_interests: Vec<f32>,
+    pub personality_interests: Vec<f32>,
+    pub skills: Vec<f32>,
+    pub right_swipes: Vec<f32>,
+    pub left_swipes: Vec<f32>,
+    pub matches: Vec<f32>,
+}
+
+impl VectorEmbedding {
+    pub fn default() -> Self {
+        VectorEmbedding {
+            age: vec![],
+            location: vec![],
+            employer: vec![],
+            reason: vec![],
+            project_interests: vec![],
+            personality_interests: vec![],
+            skills: vec![],
+            right_swipes: vec![],
+            left_swipes: vec![],
+            matches: vec![],
         }
     }
 }
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
@@ -62,9 +72,8 @@ pub struct User {
     pub skills: Option<String>, // what tech stack they want to work on (web dev, ML, etc)
     pub right_swipes: Option<Vec<String>>, // list of user's ids who this user has swiped right on
     pub left_swipes: Option<Vec<String>>, // list of user's ids who this user has swiped left on
-    pub incoming_right_swipes: Option<Vec<i32>>, 
-    pub incoming_left_swipes: Option<Vec<i32>>, // list of user's ids who have swiped right on this user
     pub matches: Option<Vec<String>>, // list of user
     pub public_fields: Option<UserView>, // list of fields that are public
+    pub vector_embeddings: Option<VectorEmbedding>,
 }
 

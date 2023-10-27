@@ -1,13 +1,12 @@
 use std::env;
 extern crate dotenv;
 use dotenv::dotenv;
-
 use mongodb::{
     bson::{self, extjson::de::Error, doc},
-    results::{ InsertOneResult},
+    results::InsertOneResult,
     Client, Collection,
 };
-use crate::models::user_model::{User, UserView};
+use crate::models::user_model::User;
 use mongodb::bson::oid::ObjectId;
 use mongodb::results::{UpdateResult, DeleteResult};
 
@@ -59,7 +58,7 @@ impl MongoRepo {
             .expect("Error getting all users");
         let mut users = vec![];
         while cursor.advance().await.expect("Error getting all users") {
-            users.push(cursor.deserialize_current().unwrap());
+            users.push(cursor.deserialize_current().expect("Deserialization error"));
         }
         Ok(users)
     }
@@ -84,10 +83,9 @@ impl MongoRepo {
                     "skills": new_user.skills,
                     "right_swipes": new_user.right_swipes,
                     "left_swipes": new_user.left_swipes,
-                    "incoming_right_swipes": new_user.incoming_right_swipes,
-                    "incoming_left_swipes": new_user.incoming_left_swipes,
                     "matches": new_user.matches,
                     "public_fields": bson::to_bson(&new_user.public_fields).unwrap(),
+                    "vector_embeddings": bson::to_bson(&new_user.vector_embeddings).unwrap(),
                 },
         };
         let updated_doc = self
