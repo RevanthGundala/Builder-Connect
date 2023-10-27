@@ -9,7 +9,7 @@ use actix_web::{
 };
 use mongodb::bson::oid::ObjectId;
 
-#[post("/profile")]
+#[post("/create")]
 pub async fn create_profile(db: Data<MongoRepo>, new_user: Json<User>) -> HttpResponse {
     let data = User {
         id: None,
@@ -52,7 +52,17 @@ pub async fn view_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpRespon
     }
 }
 
-#[put("/profile/{id}")]
+#[get("/profiles")]
+pub async fn view_all_profiles(db: Data<MongoRepo>) -> HttpResponse {
+    let user_detail = db.get_all_users().await;
+    match user_detail {
+        Ok(users) => HttpResponse::Ok().json(users),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
+
+#[put("/edit/{id}")]
 pub async fn edit_profile(
     db: Data<MongoRepo>,
     path: Path<String>,
@@ -99,7 +109,7 @@ pub async fn edit_profile(
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
-#[delete("/profile/{id}")]
+#[delete("/delete/{id}")]
 pub async fn delete_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
     let id = path.into_inner();
     if id.is_empty() {

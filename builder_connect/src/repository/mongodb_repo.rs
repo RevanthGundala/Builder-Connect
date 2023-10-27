@@ -50,6 +50,20 @@ impl MongoRepo {
         Ok(user_detail.unwrap())
     }
 
+    pub async fn get_all_users(&self) -> Result<Vec<User>, Error> {
+        let mut cursor = self
+            .col
+            .find(None, None)
+            .await
+            .ok()
+            .expect("Error getting all users");
+        let mut users = vec![];
+        while cursor.advance().await.expect("Error getting all users") {
+            users.push(cursor.deserialize_current().unwrap());
+        }
+        Ok(users)
+    }
+
     pub async fn update_user(&self, id: &String, new_user: User) -> Result<UpdateResult, Error> {
         let obj_id = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": obj_id};

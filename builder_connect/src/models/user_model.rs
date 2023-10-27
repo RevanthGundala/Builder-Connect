@@ -24,15 +24,6 @@ pub struct UserView{
     pub skills: Viewability,
 }
 
-impl From<Viewability> for Bson {
-    fn from(viewability: Viewability) -> Self {
-        match viewability {
-            Viewability::Public => Bson::String("Public".to_string()),
-            Viewability::Private => Bson::String("Private".to_string()),
-        }
-    }
-}
-
 impl UserView {
     fn default() -> Self {
         UserView{
@@ -74,6 +65,6 @@ pub struct User {
     pub incoming_right_swipes: Option<Vec<i32>>, 
     pub incoming_left_swipes: Option<Vec<i32>>, // list of user's ids who have swiped right on this user
     pub matches: Option<Vec<String>>, // list of user
-    pub public_fields: UserView, // list of fields that are public
+    pub public_fields: Option<UserView>, // list of fields that are public
 }
 

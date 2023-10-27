@@ -18,6 +18,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(db_data.clone())
             .service(create_profile)
             .service(view_profile)
+            .service(view_all_profiles)
             .service(edit_profile) 
             .service(delete_profile) 
             .service(swipe_left)
