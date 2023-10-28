@@ -5,16 +5,18 @@ use actix_web::{
     put,
     delete,
     web::{Data, Json, Path},
-    HttpResponse,
+    HttpResponse, cookie::time::Date,
 };
 use mongodb::bson::oid::ObjectId;
 use super::user_actions::generate_embedding;
+use chrono::{DateTime, Utc};
+use crate::models::user_model::Time;
 
 #[post("/create")]
 pub async fn create_profile(db: Data<MongoRepo>, new_user: Json<User>) -> HttpResponse {
     let clone = new_user.clone();
     let embeddings = update_embedding(new_user, VectorEmbedding::default()).await.expect("Error generating embeddings");
-    let data = set_fields(clone, embeddings, None);
+    let data = set_fields(clone, embeddings, None, Utc::now());
     let user_detail = db.create_user(data).await;
     match user_detail {
         Ok(user) => HttpResponse::Ok().json(user),
@@ -26,7 +28,7 @@ pub async fn create_profile(db: Data<MongoRepo>, new_user: Json<User>) -> HttpRe
 pub async fn view_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
     let id = path.into_inner();
     if id.is_empty() {
-        return HttpResponse::BadRequest().body("invalid ID");
+    return HttpResponse::BadRequest().body("invalid ID");
     }
     let user_detail = db.get_user(&id).await;
     match user_detail {
@@ -56,7 +58,7 @@ pub async fn edit_profile(
     };
     let(clone1, clone2) = (new_user.clone(), new_user.clone());
     let embeddings = update_embedding(new_user, clone2.vector_embeddings.unwrap()).await.expect("Error generating embeddings");
-    let data = set_fields(clone1, embeddings, Some(id.clone()));
+    let data = set_fields(clone1, embeddings, Some(id.clone()), db.get_user(&id).await.unwrap().time.created_at);
     let update_result = db.update_user(&id, data).await;
     match update_result {
         Ok(update) => {
@@ -134,7 +136,7 @@ async fn update_embedding(mut user: Json<User>, old_embeddings: VectorEmbedding)
     Ok(embeddings)
 }
 
-fn set_fields(new_user: User, embeddings: VectorEmbedding, id: Option<String>) -> User {
+fn set_fields(new_user: User, embeddings: VectorEmbedding, id: Option<String>, created_at: DateTime<Utc>) -> User {
     let mut user_id = None;
     if id.is_some() {
         user_id = Some(ObjectId::parse_str(&id.unwrap()).unwrap());
@@ -158,5 +160,6 @@ fn set_fields(new_user: User, embeddings: VectorEmbedding, id: Option<String>) -
         matches: new_user.matches.to_owned(),
         public_fields: new_user.public_fields.to_owned(),
         vector_embeddings: Some(embeddings),
+        time: Time {created_at, updated_at: Utc::now()},
     }
 }

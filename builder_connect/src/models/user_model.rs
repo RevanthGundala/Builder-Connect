@@ -1,6 +1,20 @@
 use mongodb::bson::oid::ObjectId;
 use serde::{Serialize, Deserialize};
 use mongodb::bson::doc;
+use chrono::{Local, DateTime, Utc};
+
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Time {
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum Access {
+    Admin,
+    User,
+} 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Viewability {
@@ -75,5 +89,5 @@ pub struct User {
     pub matches: Option<Vec<String>>, // list of user
     pub public_fields: Option<UserView>, // list of fields that are public
     pub vector_embeddings: Option<VectorEmbedding>,
+    pub time: Time
 }
-

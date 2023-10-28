@@ -6,7 +6,7 @@ use mongodb::{
     results::InsertOneResult,
     Client, Collection,
 };
-use crate::models::user_model::User;
+use crate::models::user_model::{User, Time};
 use mongodb::bson::oid::ObjectId;
 use mongodb::results::{UpdateResult, DeleteResult};
 
@@ -76,7 +76,7 @@ impl MongoRepo {
                     "github": new_user.github,
                     "website": new_user.website,
                     "age": new_user.age,
-                    "location": new_user.location,
+                    "location": new_user.location,  
                     "employer": new_user.employer,
                     "reason": new_user.reason,
                     "personality_interests": new_user.personality_interests,
@@ -86,6 +86,7 @@ impl MongoRepo {
                     "matches": new_user.matches,
                     "public_fields": bson::to_bson(&new_user.public_fields).unwrap(),
                     "vector_embeddings": bson::to_bson(&new_user.vector_embeddings).unwrap(),
+                    "time": bson::to_bson(&new_user.time).unwrap(),
                 },
         };
         let updated_doc = self

@@ -9,6 +9,8 @@ serde = "1.0.136"
 dotenv = "0.15.0"
 futures = "0.3"
 reqwest = {version = "0.11", features = ["json"] }
+chrono = { version = "0.4.23", features = ["serde"] }
+oauth2 = "4.4.2"
 
 [dependencies.mongodb]
 version = "2.2.0"
