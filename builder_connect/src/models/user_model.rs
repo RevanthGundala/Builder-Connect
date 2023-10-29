@@ -89,5 +89,4 @@ pub struct User {
     pub matches: Option<Vec<String>>, // list of user
     pub public_fields: Option<UserView>, // list of fields that are public
     pub vector_embeddings: Option<VectorEmbedding>,
-    pub time: Time
 }

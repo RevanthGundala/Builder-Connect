@@ -85,8 +85,7 @@ impl MongoRepo {
                     "left_swipes": new_user.left_swipes,
                     "matches": new_user.matches,
                     "public_fields": bson::to_bson(&new_user.public_fields).unwrap(),
-                    "vector_embeddings": bson::to_bson(&new_user.vector_embeddings).unwrap(),
-                    "time": bson::to_bson(&new_user.time).unwrap(),
+                    "vector_embeddings": bson::to_bson(&new_user.vector_embeddings).unwrap()
                 },
         };
         let updated_doc = self

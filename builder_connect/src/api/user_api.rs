@@ -16,7 +16,7 @@ use crate::models::user_model::Time;
 pub async fn create_profile(db: Data<MongoRepo>, new_user: Json<User>) -> HttpResponse {
     let clone = new_user.clone();
     let embeddings = update_embedding(new_user, VectorEmbedding::default()).await.expect("Error generating embeddings");
-    let data = set_fields(clone, embeddings, None, Utc::now());
+    let data = set_fields(clone, embeddings, None);
     let user_detail = db.create_user(data).await;
     match user_detail {
         Ok(user) => HttpResponse::Ok().json(user),
@@ -58,7 +58,7 @@ pub async fn edit_profile(
     };
     let(clone1, clone2) = (new_user.clone(), new_user.clone());
     let embeddings = update_embedding(new_user, clone2.vector_embeddings.unwrap()).await.expect("Error generating embeddings");
-    let data = set_fields(clone1, embeddings, Some(id.clone()), db.get_user(&id).await.unwrap().time.created_at);
+    let data = set_fields(clone1, embeddings, Some(id.clone()));
     let update_result = db.update_user(&id, data).await;
     match update_result {
         Ok(update) => {
@@ -136,7 +136,7 @@ async fn update_embedding(mut user: Json<User>, old_embeddings: VectorEmbedding)
     Ok(embeddings)
 }
 
-fn set_fields(new_user: User, embeddings: VectorEmbedding, id: Option<String>, created_at: DateTime<Utc>) -> User {
+fn set_fields(new_user: User, embeddings: VectorEmbedding, id: Option<String>) -> User {
     let mut user_id = None;
     if id.is_some() {
         user_id = Some(ObjectId::parse_str(&id.unwrap()).unwrap());
@@ -160,6 +160,5 @@ fn set_fields(new_user: User, embeddings: VectorEmbedding, id: Option<String>, c
         matches: new_user.matches.to_owned(),
         public_fields: new_user.public_fields.to_owned(),
         vector_embeddings: Some(embeddings),
-        time: Time {created_at, updated_at: Utc::now()},
     }
 }
