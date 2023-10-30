@@ -1,27 +1,16 @@
 use oauth2::{
     AuthorizationCode,
-    AuthUrl,
-    ClientId,
-    ClientSecret,
     CsrfToken,
     PkceCodeChallenge,
-    RedirectUrl,
     Scope,
     TokenResponse,
-    TokenUrl,
-    RequestTokenError, StandardTokenResponse,
-    PkceCodeVerifier,
-    StandardRevocableToken
 };
-use std::{env, any::Any};
-use oauth2::basic::BasicClient;
+use std::env;
 use oauth2::reqwest::async_http_client;
-use oauth2::url::Url;
 use serde::{Deserialize, Serialize};
-use actix_web::{get, HttpResponse, web::{Data, Path, Query}, rt::net::TcpListener};
+use actix_web::{get, HttpResponse, web::{Data, Query}};
 extern crate dotenv;
 use dotenv::dotenv;
-use std::io::{BufReader, Write, BufRead};
 use crate::OAuthClient;
 
 #[derive(Debug, Deserialize)]

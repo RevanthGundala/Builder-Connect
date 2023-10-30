@@ -4,17 +4,11 @@ use actix_web::{
     get,
     put,
     delete,
-    web::{Data, Json, Path, Query},
-    HttpResponse, cookie::time::Date,
+    web::{Data, Json, Path},
+    HttpResponse
 };
-use mongodb::bson::oid::ObjectId;
-use mongodb::bson::extjson::de::Error as MongoError;
 use reqwest::Client;
 use super::user_actions::generate_embedding;
-use chrono::{DateTime, Utc};
-use crate::models::user_model::Time;
-use crate::api::auth::Claims;
-use crate::api::user_api;
 
 #[post("/create/{sub_id}")]
 pub async fn create_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
@@ -70,8 +64,13 @@ pub async fn edit_profile(
         return HttpResponse::BadRequest().body("invalid ID");
     };
     let(clone1, clone2) = (new_user.clone(), new_user.clone());
-    let embeddings = update_embedding(new_user, clone2.vector_embeddings.unwrap()).await.expect("Error generating embeddings");
-    let data = set_fields(clone1, embeddings, Some(sub_id.clone()));
+    let mut data;
+    match update_embedding(new_user, clone2.vector_embeddings.unwrap()).await {
+        Ok(embeddings) => {
+            data = set_fields(clone1, Some(embeddings), Some(sub_id.clone()));
+        }
+        Err(_) => return HttpResponse::InternalServerError().body("Error generating embeddings"),
+    }
     let update_result = db.update_user(&sub_id, data).await;
     match update_result {
         Ok(update) => {
@@ -107,49 +106,18 @@ pub async fn delete_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResp
     }
 }
 
-async fn update_embedding(mut user: Json<User>, old_embeddings: VectorEmbedding) -> Result<VectorEmbedding, reqwest::Error> {
-    let mut embeddings = VectorEmbedding::default();
-    if user.vector_embeddings.is_none() {
-        user.vector_embeddings = Some(embeddings.clone());
-    }
+// TODO: FIgure out better way to generate embeddings outside of just proj intersts
+async fn update_embedding(mut user: Json<User>, old_embeddings: Vec<f32>) -> Result<Vec<f32>, reqwest::Error> {
+    let mut embeddings = user.vector_embeddings.as_mut().unwrap().to_owned();
 
-    embeddings = user.vector_embeddings.as_mut().unwrap().to_owned();
-
-    if (embeddings.age.is_empty() || embeddings.age != old_embeddings.age) && user.age.is_some() {
-        embeddings.age = generate_embedding(&user.age.unwrap().to_string()).await?;
-    }
-    if (embeddings.location.is_empty() || embeddings.location != old_embeddings.location) && user.location.is_some() {
-        embeddings.location = generate_embedding(&user.location.clone().unwrap()).await?;
-    }
-    if (embeddings.employer.is_empty() || embeddings.employer != old_embeddings.employer) && user.employer.is_some() {
-        embeddings.employer = generate_embedding(&user.employer.clone().unwrap()).await?;
-    }
-    if (embeddings.reason.is_empty() || embeddings.reason != old_embeddings.reason) && user.reason.is_some() {
-        embeddings.reason = generate_embedding(&user.reason.clone().unwrap()).await?;
-    }
-    if (embeddings.project_interests.is_empty() || embeddings.project_interests != old_embeddings.project_interests) && user.project_interests.is_some() {
-        embeddings.project_interests = generate_embedding(&user.project_interests.clone().unwrap()).await?;
-    }
-    if (embeddings.personality_interests.is_empty() || embeddings.personality_interests != old_embeddings.personality_interests) && user.personality_interests.is_some() {
-        embeddings.personality_interests = generate_embedding(&user.personality_interests.clone().unwrap()).await?;
-    }
-    if (embeddings.skills.is_empty() || embeddings.skills != old_embeddings.skills) && user.skills.is_some() {
-        embeddings.skills = generate_embedding(&user.skills.clone().unwrap()).await?;
-    }
-    if (embeddings.right_swipes.is_empty() || embeddings.right_swipes != old_embeddings.right_swipes) && user.right_swipes.is_some() {
-        embeddings.right_swipes = generate_embedding(&user.right_swipes.clone().unwrap().join(",")).await?;
-    }
-    if (embeddings.left_swipes.is_empty() || embeddings.left_swipes != old_embeddings.left_swipes) && user.left_swipes.is_some() {
-        embeddings.left_swipes = generate_embedding(&user.left_swipes.clone().unwrap().join(",")).await?;
-    }
-    if (embeddings.matches.is_empty() || embeddings.matches != old_embeddings.matches) && user.matches.is_some() {
-        embeddings.matches = generate_embedding(&user.matches.clone().unwrap().join(",")).await?;
+    if (embeddings.is_empty() || embeddings != old_embeddings) && user.project_interests.is_some() {
+        embeddings = generate_embedding(&user.project_interests.clone().unwrap()).await?;
     }
 
     Ok(embeddings)
 }
 
-fn set_fields(new_user: User, embeddings: VectorEmbedding, sub_id: Option<String>) -> User {
+fn set_fields(new_user: User, embeddings: Option<Vec<f32>>, sub_id: Option<String>) -> User {
     if sub_id.is_none() {
         panic!("No sub_id provided");
     }
@@ -172,6 +140,6 @@ fn set_fields(new_user: User, embeddings: VectorEmbedding, sub_id: Option<String
         left_swipes: new_user.left_swipes.to_owned(),
         matches: new_user.matches.to_owned(),
         public_fields: new_user.public_fields.to_owned(),
-        vector_embeddings: Some(embeddings),
+        vector_embeddings: embeddings,
     }
 }

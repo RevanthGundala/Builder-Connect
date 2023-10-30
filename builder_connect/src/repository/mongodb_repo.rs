@@ -1,20 +1,18 @@
 use std::env;
 extern crate dotenv;
-use actix_web::body::MessageBody;
 use dotenv::dotenv;
 use mongodb::{
     bson::{self, extjson::de::Error, doc},
     results::InsertOneResult,
     Client, Collection,
 };
-use crate::{models::user_model::{User, Time}, api::auth::Claims};
-use mongodb::bson::oid::ObjectId;
+use crate::models::user_model::User;
 use mongodb::results::{UpdateResult, DeleteResult};
 use mongodb::IndexModel;
 use mongodb::bson::extjson::de::Error::DeserializationError;
 
 pub struct MongoRepo {
-    col: Collection<User>,
+    pub col: Collection<User>,
 }
 
 impl MongoRepo {

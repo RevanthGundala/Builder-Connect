@@ -1,9 +1,7 @@
 use mongodb::bson::oid::ObjectId;
 use serde::{Serialize, Deserialize};
 use mongodb::bson::doc;
-use chrono::{Local, DateTime, Utc};
-use crate::api::auth::Claims;
-
+use chrono::{DateTime, Utc};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Time {
@@ -24,7 +22,6 @@ pub enum Viewability {
 } 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserView{
-    pub id: Viewability,
     pub first_name: Viewability,
     pub last_name: Viewability,
     pub email: Viewability,
@@ -37,6 +34,25 @@ pub struct UserView{
     pub project_interests: Viewability,
     pub personality_interests: Viewability,
     pub skills: Viewability,
+}
+
+impl UserView{
+    fn default() -> Self {
+        UserView {
+            first_name: Viewability::Private,
+            last_name: Viewability::Private,
+            email: Viewability::Private,
+            github: Viewability::Private,
+            website: Viewability::Private,
+            age: Viewability::Private,
+            location: Viewability::Private,
+            employer: Viewability::Private,
+            reason: Viewability::Private,
+            project_interests: Viewability::Private,
+            personality_interests: Viewability::Private,
+            skills: Viewability::Private,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -53,22 +69,37 @@ pub struct VectorEmbedding{
     pub matches: Vec<f32>,
 }
 
-impl VectorEmbedding {
-    pub fn default() -> Self {
-        VectorEmbedding {
-            age: vec![],
-            location: vec![],
-            employer: vec![],
-            reason: vec![],
-            project_interests: vec![],
-            personality_interests: vec![],
-            skills: vec![],
-            right_swipes: vec![],
-            left_swipes: vec![],
-            matches: vec![],
-        }
-    }
-}
+// impl VectorEmbedding {
+//     pub fn default() -> Self {
+//         VectorEmbedding {
+//             age: vec![],
+//             location: vec![],
+//             employer: vec![],
+//             reason: vec![],
+//             project_interests: vec![],
+//             personality_interests: vec![],
+//             skills: vec![],
+//             right_swipes: vec![],
+//             left_swipes: vec![],
+//             matches: vec![],
+//         }
+//     }
+
+//     pub fn to_vec(&self) -> Vec<f32> {
+//         vec![
+//             self.age.clone(),
+//             self.location.clone(),
+//             self.employer.clone(),
+//             self.reason.clone(),
+//             self.project_interests.clone(),
+//             // self.personality_interests.clone(),
+//             // self.skills.clone(),
+//             // self.right_swipes.clone(),
+//             // self.left_swipes.clone(),
+//             // self.matches.clone(),
+//         ].into_iter().flatten().collect()
+//     }
+// }
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
@@ -79,7 +110,7 @@ pub struct User {
     pub email: String,
     pub github: Option<String>, 
     pub website: Option<String>, 
-    pub age: Option<i32>, 
+    pub age: Option<String>, 
     pub location: Option<String>,
     pub employer: Option<String>, // school / work / etc
     pub reason: Option<String>, // why they want to join (personal project/startup)
@@ -90,7 +121,7 @@ pub struct User {
     pub left_swipes: Option<Vec<String>>, // list of user's ids who this user has swiped left on
     pub matches: Option<Vec<String>>, // list of user
     pub public_fields: Option<UserView>, // list of fields that are public
-    pub vector_embeddings: Option<VectorEmbedding>,
+    pub vector_embeddings: Option<Vec<f32>>,
 }
 
 impl User {
@@ -101,20 +132,20 @@ impl User {
             first_name: "".to_string(),
             last_name: "".to_string(),
             email: "".to_string(),
-            github: None,
-            website: None,
-            age: None,
-            location: None,
-            employer: None,
-            reason: None,
-            project_interests: None,
-            personality_interests: None,
-            skills: None,
-            right_swipes: None,
-            left_swipes: None,
-            matches: None,
-            public_fields: None,
-            vector_embeddings: None,
+            github: Some("".to_string()),
+            website: Some("".to_string()),
+            age: Some("".to_string()),
+            location: Some("".to_string()),
+            employer: Some("".to_string()),
+            reason: Some("".to_string()),
+            project_interests: Some("".to_string()),
+            personality_interests: Some("".to_string()),
+            skills: Some("".to_string()),
+            right_swipes: Some(vec![]),
+            left_swipes: Some(vec![]),
+            matches: Some(vec![]),
+            public_fields: Some(UserView::default()),
+            vector_embeddings: Some(vec![]),
         }
     } 
 }

@@ -1,16 +1,21 @@
-use crate::{models::user_model::User, repository::mongodb_repo::MongoRepo, api::auth};
+use crate::{models::user_model::{User, VectorEmbedding}, repository::mongodb_repo::MongoRepo};
 use actix_web::{
-    web::{Data, Path, Query},
+    web::{Data, Path},
     put,
     get,
     HttpResponse,
 };
 use std::env;
-extern  crate dotenv;
+extern crate dotenv;
 use dotenv::dotenv;
 use reqwest::{Response, header::HeaderValue};
+use mongodb::{
+    bson::{self, extjson::de::Error, doc, Document},
+    results::InsertOneResult,
+    Client, Collection, bson::Bson
+};
 
-#[put("/swipe_left/{id}")]
+#[put("/swipe_left/{sub_id}")]
 pub async fn swipe_left(db: Data<MongoRepo>, user_path: Path<String>, other_user_path: Path<String>) -> HttpResponse {
     let (user_id, other_user_id) =(user_path.into_inner(), other_user_path.into_inner());
     if user_id.is_empty() || other_user_id.is_empty() {
@@ -27,14 +32,14 @@ pub async fn swipe_left(db: Data<MongoRepo>, user_path: Path<String>, other_user
         ..user
     };
 
-    let user_res = db.update_user(&user_id, updated_user).await;
-    match user_res {
+    let res = db.update_user(&user_id, updated_user).await;
+    match res {
         Ok(_) => HttpResponse::Ok().body("Success"),
-        Err(_) => HttpResponse::InternalServerError().body("Internal Server Error"),
+        Err(_) => HttpResponse::InternalServerError().body("DB error"),
     }
 }
 
-#[put("/swipe_right/{id}")]
+#[put("/swipe_right/{sub_id}")]
 pub async fn swipe_right(db: Data<MongoRepo>, user_path: Path<String>, other_user_path: Path<String>) -> HttpResponse {
     let (user_id, other_user_id) =(user_path.into_inner(), other_user_path.into_inner());
     if user_id.is_empty() || other_user_id.is_empty() {
@@ -76,7 +81,7 @@ fn match_exists(other_user: &User, user_id: &String) -> bool {
     false
 }
 
-#[get("/matches/{id}")]
+#[get("/matches/{sub_id}")]
 pub async fn view_matches(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
     let id = path.into_inner();
     if id.is_empty() {
@@ -89,21 +94,67 @@ pub async fn view_matches(db: Data<MongoRepo>, path: Path<String>) -> HttpRespon
     }
 }
 
-// #[get("/recommend/{id}")]
-// pub async fn recommend_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
-//     let id = path.into_inner();
-//     if id.is_empty() {
-//         return HttpResponse::BadRequest().body("invalid ID");
-//     }
-//     let user = db.get_user(&id).await.expect("DB Error");
+fn get_users_that_cannot_match(user: &User) -> Vec<String> {
+    let mut users_cannot_match = vec![vec![user.sub_id.clone().unwrap()]];
+    if let Some(left_swipes) = &user.left_swipes {
+        users_cannot_match.push(left_swipes.to_owned());
+    }
+    if let Some(right_swipes) = &user.right_swipes {
+        users_cannot_match.push(right_swipes.to_owned());
+    }
+    if let Some(matches) = &user.matches {
+        users_cannot_match.push(matches.to_owned());
+    }
+    users_cannot_match.into_iter().flatten().collect()
+}
 
-//     // get top N users
-//     let recommended_users = vec![];
-//     let recommended_user = recommended_users[0];
+#[get("/recommend/{sub_id}")]
+pub async fn recommend_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
+    let id = path.into_inner();
+    if id.is_empty() {
+        return HttpResponse::BadRequest().body("invalid ID");
+    }
+    let user = db.get_user(&id).await.expect("DB Error");
 
-//     // ensure they are not already matched + swiped on
-//     Ok(HttpResponse::Ok().json(recommended_user))
-// }
+    // get the the top 5 users with the highest cosine similarity
+    // ensure they are not already matched + swiped on
+    let users_cannot_match = get_users_that_cannot_match(&user);
+    if let Some(embeddings) = &user.vector_embeddings {
+        if embeddings.len() == 0 {
+            return HttpResponse::Ok().body("No embeddings found");
+        } 
+        let mut recommendations = db.col.aggregate(
+            vec![
+                doc! {
+                    "$vectorSearch": {
+                        "index": "BuilderConnectSearch",
+                        "path": "vector_embeddings",
+                        "queryVector": bson::to_bson(&embeddings).unwrap(),
+                        "numCandidates": 100,
+                        "limit": 5,
+                        
+                    }
+                },
+            ],
+            None,
+        )
+        .await
+        .expect("Recommendation Error");
+        
+        // TODO: Figure out rankings
+       while recommendations.advance().await.expect("Recommendation Error Loop") {
+            let recommended_user: User = bson::from_document(recommendations.deserialize_current().unwrap()).unwrap();
+            if !users_cannot_match.contains(&recommended_user.sub_id.clone().unwrap()) {
+                return HttpResponse::Ok().json(recommended_user);
+            }
+        }
+    }
+    else{
+        return HttpResponse::Ok().body("No embeddings found");
+    }
+
+    HttpResponse::Ok().json("Need to fetch more users")
+}
 
 pub async fn generate_embedding(text: &String) -> Result<Vec<f32>, reqwest::Error>{
     dotenv().ok();

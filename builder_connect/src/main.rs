@@ -44,6 +44,7 @@ async fn main() -> std::io::Result<()> {
             .service(delete_profile) 
             .service(swipe_left)
             .service(swipe_right)
+            .service(recommend_user)
             .service(view_matches)
             .service(login)
             .service(login_callback)
