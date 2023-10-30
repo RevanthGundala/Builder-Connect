@@ -4,35 +4,48 @@ use actix_web::{
     get,
     put,
     delete,
-    web::{Data, Json, Path},
+    web::{Data, Json, Path, Query},
     HttpResponse, cookie::time::Date,
 };
 use mongodb::bson::oid::ObjectId;
+use mongodb::bson::extjson::de::Error as MongoError;
+use reqwest::Client;
 use super::user_actions::generate_embedding;
 use chrono::{DateTime, Utc};
 use crate::models::user_model::Time;
+use crate::api::auth::Claims;
+use crate::api::user_api;
 
-#[post("/create")]
-pub async fn create_profile(db: Data<MongoRepo>, new_user: Json<User>) -> HttpResponse {
-    let clone = new_user.clone();
-    let embeddings = update_embedding(new_user, VectorEmbedding::default()).await.expect("Error generating embeddings");
-    let data = set_fields(clone, embeddings, None);
-    let user_detail = db.create_user(data).await;
+#[post("/create/{sub_id}")]
+pub async fn create_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
+    let sub_id = path.into_inner();
+    if sub_id.is_empty() {
+        return HttpResponse::BadRequest().body("invalid ID");
+    } 
+    let user_detail = db.create_user(sub_id).await;
     match user_detail {
         Ok(user) => HttpResponse::Ok().json(user),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
     }
 }
 
-#[get("/profile/{id}")]
+#[get("/view/{sub_id}")]
 pub async fn view_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
-    let id = path.into_inner();
-    if id.is_empty() {
-    return HttpResponse::BadRequest().body("invalid ID");
+    let sub_id = path.into_inner();
+    if sub_id.is_empty() {
+        return HttpResponse::BadRequest().body("invalid sub_id");
     }
-    let user_detail = db.get_user(&id).await;
+    let user_detail = db.get_user(&sub_id).await;
     match user_detail {
         Ok(user) => HttpResponse::Ok().json(user),
+        Err(MongoError) => {
+            let client = Client::new();
+            let res = client.post(format!("http://localhost:8080/create/{}", sub_id))
+                .send()
+                .await
+                .unwrap();
+            HttpResponse::Ok().json(res.text().await.unwrap())
+        }
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
@@ -46,24 +59,24 @@ pub async fn view_all_profiles(db: Data<MongoRepo>) -> HttpResponse {
     }
 }
 
-#[put("/edit/{id}")]
+#[put("/edit/{sub_id}")]
 pub async fn edit_profile(
     db: Data<MongoRepo>,
     path: Path<String>,
     new_user: Json<User>,
 ) -> HttpResponse {
-    let id = path.into_inner();
-    if id.is_empty() {
+    let sub_id = path.into_inner();
+    if sub_id.is_empty() {
         return HttpResponse::BadRequest().body("invalid ID");
     };
     let(clone1, clone2) = (new_user.clone(), new_user.clone());
     let embeddings = update_embedding(new_user, clone2.vector_embeddings.unwrap()).await.expect("Error generating embeddings");
-    let data = set_fields(clone1, embeddings, Some(id.clone()));
-    let update_result = db.update_user(&id, data).await;
+    let data = set_fields(clone1, embeddings, Some(sub_id.clone()));
+    let update_result = db.update_user(&sub_id, data).await;
     match update_result {
         Ok(update) => {
             if update.matched_count == 1 {
-                let updated_user_info = db.get_user(&id).await;
+                let updated_user_info = db.get_user(&sub_id).await;
                 return match updated_user_info {
                     Ok(user) => HttpResponse::Ok().json(user),
                     Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
@@ -75,13 +88,13 @@ pub async fn edit_profile(
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
-#[delete("/delete/{id}")]
+#[delete("/delete/{sub_id}")]
 pub async fn delete_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
-    let id = path.into_inner();
-    if id.is_empty() {
+    let sub_id = path.into_inner();
+    if sub_id.is_empty() {
         return HttpResponse::BadRequest().body("invalid ID");
     };
-    let result = db.delete_user(&id).await;
+    let result = db.delete_user(&sub_id).await;
     match result {
         Ok(res) => {
             if res.deleted_count == 1 {
@@ -136,13 +149,13 @@ async fn update_embedding(mut user: Json<User>, old_embeddings: VectorEmbedding)
     Ok(embeddings)
 }
 
-fn set_fields(new_user: User, embeddings: VectorEmbedding, id: Option<String>) -> User {
-    let mut user_id = None;
-    if id.is_some() {
-        user_id = Some(ObjectId::parse_str(&id.unwrap()).unwrap());
+fn set_fields(new_user: User, embeddings: VectorEmbedding, sub_id: Option<String>) -> User {
+    if sub_id.is_none() {
+        panic!("No sub_id provided");
     }
     User {
-        id: user_id,
+        id: new_user.id.to_owned(),
+        sub_id,
         first_name: new_user.first_name.to_owned(),
         last_name: new_user.last_name.to_owned(),
         email: new_user.email.to_owned(),

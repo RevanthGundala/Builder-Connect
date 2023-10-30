@@ -1,14 +1,17 @@
 use std::env;
 extern crate dotenv;
+use actix_web::body::MessageBody;
 use dotenv::dotenv;
 use mongodb::{
     bson::{self, extjson::de::Error, doc},
     results::InsertOneResult,
     Client, Collection,
 };
-use crate::models::user_model::{User, Time};
+use crate::{models::user_model::{User, Time}, api::auth::Claims};
 use mongodb::bson::oid::ObjectId;
 use mongodb::results::{UpdateResult, DeleteResult};
+use mongodb::IndexModel;
+use mongodb::bson::extjson::de::Error::DeserializationError;
 
 pub struct MongoRepo {
     col: Collection<User>,
@@ -24,10 +27,19 @@ impl MongoRepo {
         let client = Client::with_uri_str(uri).await.unwrap();
         let db = client.database("BuilderConnectDB");
         let col: Collection<User> = db.collection("Users");
+        let index_model = IndexModel::builder()
+            .keys(doc! {"sub_id": 1})
+            .options(None)
+            .build();
+        let res = col.create_index(index_model, None).await.unwrap();
+        if res.index_name != "sub_id_1" {
+            panic!("PANIC!! Error creating index");
+        }
         MongoRepo { col }
     }
 
-    pub async fn create_user(&self, new_user: User) -> Result<InsertOneResult, Error> {
+    pub async fn create_user(&self, sub_id: String) -> Result<InsertOneResult, Error> {
+        let new_user = User::new(sub_id);
         let res = self
             .col
             .insert_one(new_user, None)
@@ -37,16 +49,18 @@ impl MongoRepo {
         Ok(res)
     }
 
-    pub async fn get_user(&self, id: &String) -> Result<User, Error> {
-        let obj_id = ObjectId::parse_str(id).unwrap();
-        let filter = doc! {"_id": obj_id};
+    pub async fn get_user(&self, sub_id: &String) -> Result<User, Error> {
+        let filter = doc! {"sub_id": sub_id};
         let user_detail = self
             .col
             .find_one(filter, None)
             .await
             .ok()
             .expect("Error getting user's detail");
-        Ok(user_detail.unwrap())
+        match user_detail {
+            Some(user) => Ok(user),
+            None => Err(DeserializationError {message: "No user found".to_string()}),
+        }
     }
 
     pub async fn get_all_users(&self) -> Result<Vec<User>, Error> {
@@ -63,13 +77,13 @@ impl MongoRepo {
         Ok(users)
     }
 
-    pub async fn update_user(&self, id: &String, new_user: User) -> Result<UpdateResult, Error> {
-        let obj_id = ObjectId::parse_str(id).unwrap();
-        let filter = doc! {"_id": obj_id};
+    pub async fn update_user(&self, sub_id: &String, new_user: User) -> Result<UpdateResult, Error> {
+        let filter = doc! {"sub_id": sub_id};
         let new_doc = doc! {
             "$set":
                 {
                     "id": new_user.id,
+                    "sub_id": new_user.sub_id,
                     "first_name": new_user.first_name,
                     "last_name": new_user.last_name,
                     "email": new_user.email,
@@ -97,9 +111,8 @@ impl MongoRepo {
         Ok(updated_doc)
     }
 
-    pub async fn delete_user(&self, id: &String) -> Result<DeleteResult, Error> {
-        let obj_id = ObjectId::parse_str(id).unwrap();
-        let filter = doc! {"_id": obj_id};
+    pub async fn delete_user(&self, sub_id: &String) -> Result<DeleteResult, Error> {
+        let filter = doc! {"sub_id": sub_id};
         let user_detail = self
             .col
             .delete_one(filter, None)

@@ -44,8 +44,10 @@ pub struct OAuthResponse {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
+    pub sub: String,
+    pub given_name: String,
+    pub family_name: String,
     pub email: String,
-    pub name: String,
 }
 
 pub fn load_env_variables() -> [String; 5]{
@@ -98,9 +100,11 @@ pub async fn login_callback(data: Data<OAuthClient>, req: Query<OAuthRequest>) -
 
     let url = format!("https://openidconnect.googleapis.com/v1/userinfo?alt=json&access_token={}", token_result.access_token().secret());
     let res = reqwest::get(&url).await.unwrap();
-    println!("Sub: {}", res.text().await.unwrap());
-    let sub = "";
-    let res = reqwest::get(format!("/profile/{}", sub)).await.unwrap();
-
-    HttpResponse::Ok().body(token_result.access_token().secret().to_string())
+    let res_text = res.text().await.unwrap();
+    let claims: Claims = serde_json::from_str(&res_text).unwrap();
+    let res = reqwest::get(format!("http://localhost:8080/view/{}", claims.sub)).await;
+    match res {
+        Ok(r) => HttpResponse::Ok().body(r.text().await.unwrap()),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
 }

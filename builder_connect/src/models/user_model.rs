@@ -2,6 +2,7 @@ use mongodb::bson::oid::ObjectId;
 use serde::{Serialize, Deserialize};
 use mongodb::bson::doc;
 use chrono::{Local, DateTime, Utc};
+use crate::api::auth::Claims;
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -72,6 +73,7 @@ impl VectorEmbedding {
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
+    pub sub_id: Option<String>,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
@@ -89,4 +91,30 @@ pub struct User {
     pub matches: Option<Vec<String>>, // list of user
     pub public_fields: Option<UserView>, // list of fields that are public
     pub vector_embeddings: Option<VectorEmbedding>,
+}
+
+impl User {
+    pub fn new(sub_id: String) -> Self {
+        User {
+            id: Some(ObjectId::new()),
+            sub_id: Some(sub_id),
+            first_name: "".to_string(),
+            last_name: "".to_string(),
+            email: "".to_string(),
+            github: None,
+            website: None,
+            age: None,
+            location: None,
+            employer: None,
+            reason: None,
+            project_interests: None,
+            personality_interests: None,
+            skills: None,
+            right_swipes: None,
+            left_swipes: None,
+            matches: None,
+            public_fields: None,
+            vector_embeddings: None,
+        }
+    } 
 }
