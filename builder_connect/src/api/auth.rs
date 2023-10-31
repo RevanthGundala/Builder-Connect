@@ -75,7 +75,7 @@ pub async fn login(data: Data<OAuthClient>) -> HttpResponse {
         .add_scope(Scope::new("profile".to_string()))
         // .set_pkce_challenge(pkce_challenge)
         .url();
-    HttpResponse::Ok().body(auth_url.to_string())
+    HttpResponse::Ok().json(auth_url.to_string())
 }
 
 #[get("/login/callback")]
@@ -93,7 +93,7 @@ pub async fn login_callback(data: Data<OAuthClient>, req: Query<OAuthRequest>) -
     let claims: Claims = serde_json::from_str(&res_text).unwrap();
     let res = reqwest::get(format!("http://localhost:8080/view/{}", claims.sub)).await;
     match res {
-        Ok(r) => HttpResponse::Ok().body(r.text().await.unwrap()),
+        Ok(r) => HttpResponse::Ok().json(r.text().await.unwrap()),
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
