@@ -7,16 +7,7 @@ export default function GoogleSignIn() {
   async function handle_google_sign_in(router: NextRouter) {
     console.log("Signing in with Google...");
     const url = "http://localhost:8080/login";
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        accept: "application/json",
-        body: JSON.stringify({
-          withCredentials: true,
-        }),
-      },
-    });
+    const response = await fetch(url, { credentials: "include" });
     const login_url = await response.json();
     router.push(login_url);
   }

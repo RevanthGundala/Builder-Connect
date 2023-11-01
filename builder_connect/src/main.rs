@@ -6,7 +6,7 @@ use crate::api::user_actions::*;
 use actix_web::cookie::{ SameSite };
 use actix_session::{ SessionMiddleware, Session };
 use actix_session::config::{ BrowserSession, CookieContentSecurity };
-use actix_session::storage::{ CookieSessionStore };
+use actix_session::storage::{ RedisActorSessionStore };
 //modify imports below
 use actix_web::{web::Data, App, HttpServer, http, cookie::Key};
 use api::{user_api::*, auth::*};
@@ -24,19 +24,6 @@ pub struct OAuthClient {
     client: BasicClient,
 }
 
-fn session_middleware() -> SessionMiddleware<CookieSessionStore> {
-    SessionMiddleware::builder(
-        CookieSessionStore::default(), Key::from(&[0; 64])
-    )
-	.cookie_name(String::from("Builder Connect"))
-	.cookie_secure(true)
-	.session_lifecycle(BrowserSession::default())
-	// .cookie_same_site(SameSite::Strict)
-	.cookie_content_security(CookieContentSecurity::Private)
-	.cookie_http_only(true)
-	.build()
-}
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let db = MongoRepo::init().await;
@@ -50,7 +37,7 @@ async fn main() -> std::io::Result<()> {
         .set_redirect_uri(RedirectUrl::new(redirect_url).unwrap());
     let oauth_client = OAuthClient { client };
     let oauth_client_data = Data::new(oauth_client);
-    let secret_key = Key::generate();  
+    let signing_key = Key::generate();  
     HttpServer::new(move || {
         // let cors = Cors::default()
         //     .allowed_origin("http://localhost:3000")
@@ -64,7 +51,17 @@ async fn main() -> std::io::Result<()> {
             .app_data(db_data.clone())
             .app_data(oauth_client_data.clone())
             .wrap(cors)
-            .wrap(session_middleware())
+            .wrap(
+                SessionMiddleware::builder(
+                    RedisActorSessionStore::new("127.0.0.1:6379"),
+                    signing_key.clone(),
+                )
+                // allow the cookie to be accessed from javascript
+                .cookie_http_only(false)
+                // allow the cookie only from the current domain
+                .cookie_same_site(SameSite::Strict)
+                .build(),
+            )
             .service(create_profile)
             .service(view_profile)
             .service(view_all_profiles)
@@ -78,6 +75,7 @@ async fn main() -> std::io::Result<()> {
             .service(login_callback)
             .service(logout)
             .service(get_session)
+            .service(index)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

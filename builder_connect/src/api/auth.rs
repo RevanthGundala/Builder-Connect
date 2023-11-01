@@ -69,14 +69,12 @@ pub fn load_env_variables() -> [String; 5]{
 
 #[get("/login")]
 pub async fn login(data: Data<OAuthClient>, session: Session) -> HttpResponse {
-    println!("session: {:?}", session.entries());
     if let Some(sub_id) = session.get::<String>("sub_id").unwrap() {
-        println!("Sucess");
-        // let res = reqwest::get(format!("http://localhost:8080/view/{}", sub_id)).await;
-        // match res {
-        //     Ok(r) => return HttpResponse::Ok().json("Working"),
-        //     Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
-        // }
+        let res = reqwest::get(format!("http://localhost:8080/view/{}", sub_id)).await;
+        match res {
+            Ok(r) => return HttpResponse::Ok().json("Working"),
+            Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+        }
     }
     let client = data.client.clone();
     let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
@@ -100,6 +98,20 @@ async fn get_session(session: Session) -> HttpResponse {
 	}
 	Err(_) => HttpResponse::InternalServerError().body("Error.")
     }
+}
+
+#[get("/index")]
+pub async fn index(session: Session) -> HttpResponse {
+    // access the session state
+    if let Some(count) = session.get::<i32>("counter").unwrap() {
+        println!("SESSION value: {}", count);
+        // modify the session state
+        session.insert("counter", count + 1).unwrap();
+    } else {
+        session.insert("counter", 1).unwrap();
+    }
+
+    HttpResponse::Ok().json("Welcome!")
 }
 
 #[get("/login/callback")]

@@ -33,10 +33,20 @@ const LandingPage = () => {
     }
   });
 
+  async function index() {
+    try {
+      const url = process.env.NEXT_PUBLIC_BASE_URL + `/index`;
+      const res = await fetch(url, { credentials: "include" });
+      const data = await res.json();
+      console.log(data);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   return (
     <div className="bg-gray-100">
       <Navbar is_connected={is_connected} />
-
       {/* Hero Section */}
       <header
         className="py-16 bg-cover bg-center relative"
@@ -56,7 +66,9 @@ const LandingPage = () => {
           </a>
         </div>
       </header>
-
+      <button className="text-black" onClick={index}>
+        Click
+      </button>
       {/* Features Section */}
       <section className="py-16">
         <div className="container mx-auto text-center">
