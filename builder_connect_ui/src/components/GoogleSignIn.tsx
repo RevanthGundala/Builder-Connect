@@ -12,6 +12,9 @@ export default function GoogleSignIn() {
       headers: {
         "Content-Type": "application/json",
         accept: "application/json",
+        body: JSON.stringify({
+          withCredentials: true,
+        }),
       },
     });
     const login_url = await response.json();

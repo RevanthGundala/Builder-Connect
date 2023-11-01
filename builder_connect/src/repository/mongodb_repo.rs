@@ -82,6 +82,7 @@ impl MongoRepo {
                 {
                     "id": new_user.id,
                     "sub_id": new_user.sub_id,
+                    "image_url": new_user.image_url,
                     "first_name": new_user.first_name,
                     "last_name": new_user.last_name,
                     "email": new_user.email,

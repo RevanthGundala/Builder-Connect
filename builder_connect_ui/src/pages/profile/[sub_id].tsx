@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 export default function Profile() {
   const router = useRouter();
   const [profile, set_profile] = useState<any>({});
+  const [image_url, set_image_url] = useState("");
   const [first_name, set_first_name] = useState("");
   const [last_name, set_last_name] = useState("");
   const [email, set_email] = useState("");
@@ -21,6 +22,7 @@ export default function Profile() {
   async function edit_profile(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const new_profile = {
+      image_url: image_url,
       first_name: first_name,
       last_name: last_name,
       email: email,
@@ -61,7 +63,7 @@ export default function Profile() {
       set_profile(data);
     }
   }, [profile]);
-
+  // TODO: Add image upload
   return (
     <div className="bg-gray-100 min-h-screen flex items-center justify-center">
       <div className="bg-white p-8 rounded shadow-md w-96">

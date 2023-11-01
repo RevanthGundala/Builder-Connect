@@ -9,6 +9,7 @@ use std::env;
 use oauth2::reqwest::async_http_client;
 use serde::{Deserialize, Serialize};
 use actix_web::{get, HttpResponse, web::{Data, Query}};
+use actix_session::Session;
 extern crate dotenv;
 use dotenv::dotenv;
 use crate::OAuthClient;
@@ -39,6 +40,7 @@ pub struct Claims {
     pub email: String,
 }
 
+
 pub fn load_env_variables() -> [String; 5]{
     dotenv().ok();
     let client_id = match env::var("GOOGLE_OAUTH_CLIENT_ID") {
@@ -66,7 +68,16 @@ pub fn load_env_variables() -> [String; 5]{
 }
 
 #[get("/login")]
-pub async fn login(data: Data<OAuthClient>) -> HttpResponse {
+pub async fn login(data: Data<OAuthClient>, session: Session) -> HttpResponse {
+    println!("session: {:?}", session.entries());
+    if let Some(sub_id) = session.get::<String>("sub_id").unwrap() {
+        println!("Sucess");
+        // let res = reqwest::get(format!("http://localhost:8080/view/{}", sub_id)).await;
+        // match res {
+        //     Ok(r) => return HttpResponse::Ok().json("Working"),
+        //     Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+        // }
+    }
     let client = data.client.clone();
     let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
     let (auth_url, csrf_token) = client
@@ -78,8 +89,21 @@ pub async fn login(data: Data<OAuthClient>) -> HttpResponse {
     HttpResponse::Ok().json(auth_url.to_string())
 }
 
+#[get("/get_session")]
+async fn get_session(session: Session) -> HttpResponse {
+    match session.get::<String>("sub_id") {
+	Ok(message_option) => {
+	    match message_option {
+		Some(message) => HttpResponse::Ok().body(message),
+		None => HttpResponse::NotFound().body("Not set.")
+	    }
+	}
+	Err(_) => HttpResponse::InternalServerError().body("Error.")
+    }
+}
+
 #[get("/login/callback")]
-pub async fn login_callback(data: Data<OAuthClient>, req: Query<OAuthRequest>) -> HttpResponse {
+pub async fn login_callback(data: Data<OAuthClient>, req: Query<OAuthRequest>, session: Session) -> HttpResponse {
     let client = data.client.clone();
     let token_result = client
         .exchange_code(AuthorizationCode::new(req.into_inner().code))
@@ -91,9 +115,21 @@ pub async fn login_callback(data: Data<OAuthClient>, req: Query<OAuthRequest>) -
     let res = reqwest::get(&url).await.unwrap();
     let res_text = res.text().await.unwrap();
     let claims: Claims = serde_json::from_str(&res_text).unwrap();
-    let res = reqwest::get(format!("http://localhost:8080/view/{}", claims.sub)).await;
-    match res {
-        Ok(r) => HttpResponse::Ok().json(r.text().await.unwrap()),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
-    }
+    session.insert("sub_id", claims.sub.clone()).unwrap();
+    HttpResponse::Ok().json(claims.sub.clone())
+    // let res = reqwest::get(format!("http://localhost:8080/view/{}", claims.sub)).await;
+    // match res {
+    //     Ok(r) => {
+    //         session.insert("sub_id", claims.sub).unwrap();
+    //         println!("session: {:?}", session.entries());
+    //         HttpResponse::Ok().json(r.text().await.unwrap())
+    //     },
+    //     Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    // }
+}
+
+#[get("/logout")]
+pub async fn logout(session: Session) -> HttpResponse {
+    session.purge();
+    HttpResponse::Ok().json("Logged out") 
 }

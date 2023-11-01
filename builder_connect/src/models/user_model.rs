@@ -105,6 +105,7 @@ pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub sub_id: Option<String>,
+    pub image_url: Option<String>,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
@@ -129,6 +130,7 @@ impl User {
         User {
             id: Some(ObjectId::new()),
             sub_id: Some(sub_id),
+            image_url: Some("".to_string()),
             first_name: "".to_string(),
             last_name: "".to_string(),
             email: "".to_string(),

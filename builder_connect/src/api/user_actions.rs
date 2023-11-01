@@ -34,7 +34,7 @@ pub async fn swipe_left(db: Data<MongoRepo>, user_path: Path<String>, other_user
 
     let res = db.update_user(&user_id, updated_user).await;
     match res {
-        Ok(_) => HttpResponse::Ok().body("Success"),
+        Ok(_) => HttpResponse::Ok().json("Swipe Left Success"),
         Err(_) => HttpResponse::InternalServerError().body("DB error"),
     }
 }
@@ -68,7 +68,7 @@ pub async fn swipe_right(db: Data<MongoRepo>, user_path: Path<String>, other_use
     let user_res = db.update_user(&user_id, user.clone()).await;
     let other_user_res = db.update_user(&other_user_id, other_user.clone()).await;
     match (user_res, other_user_res) {
-        (Ok(_), Ok(_)) => HttpResponse::Ok().body("Success"),
+        (Ok(_), Ok(_)) => HttpResponse::Ok().json("Swipe Right Success"),
         (Err(_), Err(_)) => HttpResponse::InternalServerError().body("DB error"),
         _ => HttpResponse::InternalServerError().body("DB error"),
     }
