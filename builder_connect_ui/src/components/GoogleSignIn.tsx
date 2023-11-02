@@ -9,7 +9,7 @@ export default function GoogleSignIn() {
     const url = "http://localhost:8080/login";
     const response = await fetch(url, { credentials: "include" });
     const login_url = await response.json();
-    router.push(login_url);
+    login_url === "/" ? router.push("/") : router.push(login_url);
   }
   return (
     <div>

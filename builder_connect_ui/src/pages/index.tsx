@@ -9,40 +9,20 @@ const LandingPage = () => {
   const [is_connected, set_is_connected] = useState(false);
 
   useEffect(() => {
-    // check_for_callback(router);
-
-    // async function check_for_callback(router: NextRouter) {
-    //   try {
-    //     const res = await fetch("http://localhost:8080/login/callback");
-    //     const data = await res.json();
-    //     router.push(`/profile/${data.sub_id}`);
-    //   } catch (e) {
-    //     console.log(e);
-    //   }
-    // }
     check_session();
+
     async function check_session() {
       try {
         const url = process.env.NEXT_PUBLIC_BASE_URL + `/get_session`;
-        const res = await fetch(url);
+        const res = await fetch(url, { credentials: "include" });
         const data = await res.json();
-        console.log(data);
+        data === "Not set." ? set_is_connected(false) : set_is_connected(true);
+        is_connected ? console.log("Connected") : console.log("Not connected");
       } catch (err) {
         console.log(err);
       }
     }
-  });
-
-  async function index() {
-    try {
-      const url = process.env.NEXT_PUBLIC_BASE_URL + `/index`;
-      const res = await fetch(url, { credentials: "include" });
-      const data = await res.json();
-      console.log(data);
-    } catch (err) {
-      console.log(err);
-    }
-  }
+  }, [is_connected]);
 
   return (
     <div className="bg-gray-100">
@@ -66,9 +46,7 @@ const LandingPage = () => {
           </a>
         </div>
       </header>
-      <button className="text-black" onClick={index}>
-        Click
-      </button>
+
       {/* Features Section */}
       <section className="py-16">
         <div className="container mx-auto text-center">

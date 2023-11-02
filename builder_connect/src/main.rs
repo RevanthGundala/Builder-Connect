@@ -75,7 +75,6 @@ async fn main() -> std::io::Result<()> {
             .service(login_callback)
             .service(logout)
             .service(get_session)
-            .service(index)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

@@ -69,79 +69,80 @@ pub fn load_env_variables() -> [String; 5]{
 
 #[get("/login")]
 pub async fn login(data: Data<OAuthClient>, session: Session) -> HttpResponse {
-    if let Some(sub_id) = session.get::<String>("sub_id").unwrap() {
-        let res = reqwest::get(format!("http://localhost:8080/view/{}", sub_id)).await;
-        match res {
-            Ok(r) => return HttpResponse::Ok().json("Working"),
-            Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    match validate(&session).await {
+        Ok(res) => {
+            if res {
+                return HttpResponse::Ok().json("/");
+            }
+            else{
+                let client = data.client.clone();
+                let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
+                let (auth_url, csrf_token) = client
+                    .authorize_url(CsrfToken::new_random)
+                    .add_scope(Scope::new("email".to_string()))
+                    .add_scope(Scope::new("profile".to_string()))
+                    // .set_pkce_challenge(pkce_challenge)
+                    .url();
+                return HttpResponse::Ok().json(auth_url.to_string())
+            }
         }
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
     }
-    let client = data.client.clone();
-    let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
-    let (auth_url, csrf_token) = client
-        .authorize_url(CsrfToken::new_random)
-        .add_scope(Scope::new("email".to_string()))
-        .add_scope(Scope::new("profile".to_string()))
-        // .set_pkce_challenge(pkce_challenge)
-        .url();
-    HttpResponse::Ok().json(auth_url.to_string())
-}
-
-#[get("/get_session")]
-async fn get_session(session: Session) -> HttpResponse {
-    match session.get::<String>("sub_id") {
-	Ok(message_option) => {
-	    match message_option {
-		Some(message) => HttpResponse::Ok().body(message),
-		None => HttpResponse::NotFound().body("Not set.")
-	    }
-	}
-	Err(_) => HttpResponse::InternalServerError().body("Error.")
-    }
-}
-
-#[get("/index")]
-pub async fn index(session: Session) -> HttpResponse {
-    // access the session state
-    if let Some(count) = session.get::<i32>("counter").unwrap() {
-        println!("SESSION value: {}", count);
-        // modify the session state
-        session.insert("counter", count + 1).unwrap();
-    } else {
-        session.insert("counter", 1).unwrap();
-    }
-
-    HttpResponse::Ok().json("Welcome!")
+    HttpResponse::InternalServerError().body("Something went wrong")
 }
 
 #[get("/login/callback")]
 pub async fn login_callback(data: Data<OAuthClient>, req: Query<OAuthRequest>, session: Session) -> HttpResponse {
-    let client = data.client.clone();
-    let token_result = client
-        .exchange_code(AuthorizationCode::new(req.into_inner().code))
-        // .set_pkce_verifier(PkceCodeVerifier::new(verifier.into_inner()))
-        .request_async(async_http_client)
-        .await.unwrap();
+    match validate(&session).await {
+        Ok(res) => {
+            if !res {
+                let client = data.client.clone();
+                let token_result = client
+                    .exchange_code(AuthorizationCode::new(req.into_inner().code))
+                    // .set_pkce_verifier(PkceCodeVerifier::new(verifier.into_inner()))
+                    .request_async(async_http_client)
+                    .await.unwrap();
 
-    let url = format!("https://openidconnect.googleapis.com/v1/userinfo?alt=json&access_token={}", token_result.access_token().secret());
-    let res = reqwest::get(&url).await.unwrap();
-    let res_text = res.text().await.unwrap();
-    let claims: Claims = serde_json::from_str(&res_text).unwrap();
-    session.insert("sub_id", claims.sub.clone()).unwrap();
-    HttpResponse::Ok().json(claims.sub.clone())
-    // let res = reqwest::get(format!("http://localhost:8080/view/{}", claims.sub)).await;
-    // match res {
-    //     Ok(r) => {
-    //         session.insert("sub_id", claims.sub).unwrap();
-    //         println!("session: {:?}", session.entries());
-    //         HttpResponse::Ok().json(r.text().await.unwrap())
-    //     },
-    //     Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
-    // }
+                let url = format!("https://openidconnect.googleapis.com/v1/userinfo?alt=json&access_token={}", token_result.access_token().secret());
+                let res = reqwest::get(&url).await.unwrap();
+                let res_text = res.text().await.unwrap();
+                let claims: Claims = serde_json::from_str(&res_text).unwrap();
+                session.insert("sub_id", claims.sub.clone()).unwrap();
+                let _ = reqwest::get(format!("http://localhost:8080/view/{}", claims.sub)).await.expect("Error");
+            }
+            return HttpResponse::Found().header("Location", "http://localhost:3000").finish();
+        }
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    }
+    HttpResponse::InternalServerError().body("Something went wrong")
+}
+
+#[get("/get_session")]
+pub async fn get_session(session: Session) -> HttpResponse {
+    match session.get::<String>("sub_id") {
+        Ok(message_option) => {
+            match message_option {
+            Some(message) => HttpResponse::Ok().body(message),
+            None => HttpResponse::NotFound().body("Not set.")
+            }
+        }
+	    Err(_) => HttpResponse::InternalServerError().body("Error.")
+    }
 }
 
 #[get("/logout")]
 pub async fn logout(session: Session) -> HttpResponse {
     session.purge();
     HttpResponse::Ok().json("Logged out") 
+}
+
+pub async fn validate(session: &Session) -> Result<bool, reqwest::Error> {
+    if let Some(sub_id) = session.get::<String>("sub_id").unwrap() {
+        let res = reqwest::get(format!("http://localhost:8080/view/{}", sub_id)).await;
+        match res {
+            Ok(r) => return Ok(true),
+            Err(err) => return Err(err),
+        }
+    }
+    Ok(false)
 }
