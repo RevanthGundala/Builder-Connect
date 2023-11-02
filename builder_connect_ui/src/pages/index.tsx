@@ -3,10 +3,12 @@ import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
 import { NextRouter, useRouter } from "next/router";
 import Footer from "@/components/Footer";
+import Link from "next/link";
 
 const LandingPage = () => {
   const router = useRouter();
   const [is_connected, set_is_connected] = useState(false);
+  const [sub_id, set_sub_id] = useState("");
 
   useEffect(() => {
     check_session();
@@ -16,7 +18,12 @@ const LandingPage = () => {
         const url = process.env.NEXT_PUBLIC_BASE_URL + `/get_session`;
         const res = await fetch(url, { credentials: "include" });
         const data = await res.json();
-        data === "Not set." ? set_is_connected(false) : set_is_connected(true);
+        if (data !== "Not set.") {
+          set_is_connected(true);
+          set_sub_id(data);
+        } else {
+          set_is_connected(false);
+        }
         is_connected ? console.log("Connected") : console.log("Not connected");
       } catch (err) {
         console.log(err);
@@ -38,12 +45,21 @@ const LandingPage = () => {
             Builder Connect
           </h1>
           <p className="text-2xl text-white mt-4">Build the Future</p>
-          <a
-            href="#"
-            className="mt-6 inline-block bg-blue-500 text-white font-semibold rounded-full py-3 px-8 hover:bg-blue-700"
-          >
-            Get Started
-          </a>
+          {is_connected ? (
+            <Link
+              href={`/swipe/${sub_id}`}
+              className="mt-6 inline-block bg-blue-500 text-white font-semibold rounded-full py-3 px-8 hover:bg-blue-700"
+            >
+              Get Started
+            </Link>
+          ) : (
+            <Link
+              href="/SignIn"
+              className="mt-6 inline-block bg-blue-500 text-white font-semibold rounded-full py-3 px-8 hover:bg-blue-700"
+            >
+              Get Started
+            </Link>
+          )}
         </div>
       </header>
 

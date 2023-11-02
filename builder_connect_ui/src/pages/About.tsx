@@ -1,11 +1,28 @@
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 export default function About() {
+  const [is_connected, set_is_connected] = useState(false);
+
+  useEffect(() => {
+    check_session();
+
+    async function check_session() {
+      try {
+        const url = process.env.NEXT_PUBLIC_BASE_URL + `/get_session`;
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json();
+        data === "Not set." ? set_is_connected(false) : set_is_connected(true);
+        is_connected ? console.log("Connected") : console.log("Not connected");
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  }, [is_connected]);
   return (
     <div className="bg-gray-100">
-      <Navbar />
+      <Navbar is_connected={is_connected} />
 
       {/* Hero Section */}
       <header

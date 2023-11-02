@@ -108,9 +108,10 @@ pub async fn login_callback(data: Data<OAuthClient>, req: Query<OAuthRequest>, s
                 let res_text = res.text().await.unwrap();
                 let claims: Claims = serde_json::from_str(&res_text).unwrap();
                 session.insert("sub_id", claims.sub.clone()).unwrap();
-                let _ = reqwest::get(format!("http://localhost:8080/view/{}", claims.sub)).await.expect("Error");
+                let _ = reqwest::get(format!("http://localhost:8080/view/{}", claims.sub.clone())).await.expect("Error");
             }
-            return HttpResponse::Found().header("Location", "http://localhost:3000").finish();
+            let url = format!("http://localhost:3000");
+            return HttpResponse::Found().header("Location", url).finish();
         }
         Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
     }
@@ -122,7 +123,7 @@ pub async fn get_session(session: Session) -> HttpResponse {
     match session.get::<String>("sub_id") {
         Ok(message_option) => {
             match message_option {
-            Some(message) => HttpResponse::Ok().body(message),
+            Some(message) => HttpResponse::Ok().json(message),
             None => HttpResponse::NotFound().body("Not set.")
             }
         }

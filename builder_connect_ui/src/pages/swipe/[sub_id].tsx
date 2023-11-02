@@ -1,32 +1,40 @@
+import Navbar from "@/components/Navbar";
 import { NextRouter, useRouter } from "next/router";
 import React, { useState, useEffect } from "react";
 
-const data = [
-  {
-    id: 1,
-    name: "User 1",
-    age: 25,
-    bio: "Fun-loving adventurer. Enjoys hiking and traveling.",
-    imageUrl: "user1.jpg",
-  },
-  {
-    id: 2,
-    name: "User 2",
-    age: 28,
-    bio: "Coffee lover and bookworm. Looking for a partner in crime.",
-    imageUrl: "user2.jpg",
-  },
-  // Add more user data here
-];
-
 export default function Swipe() {
-  const router = useRouter();
+  const [is_connected, set_is_connected] = useState(false);
+  const [sub_id, set_sub_id] = useState("");
   const [recommended_user, set_recommended_user] = useState<any>({});
 
-  async function swipe_left(router: NextRouter) {
+  useEffect(() => {
+    check_session();
+    recommend();
+
+    async function check_session() {
+      try {
+        const url = process.env.NEXT_PUBLIC_BASE_URL + `/get_session`;
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json();
+        if (data !== "Not set.") {
+          set_is_connected(true);
+          set_sub_id(data);
+        } else {
+          set_is_connected(false);
+        }
+        is_connected ? console.log("Connected") : console.log("Not connected");
+      } catch (err) {
+        console.log(err);
+      }
+    }
+  }, [is_connected]);
+
+  async function swipe_left() {
     try {
-      const sub_id = router.asPath.split("/")[2];
-      const url = process.env.NEXT_PUBLIC_BASE_URL + `/swipe_left/${sub_id}`;
+      if (!recommended_user) return;
+      const url =
+        process.env.NEXT_PUBLIC_BASE_URL +
+        `/swipe_left/${sub_id}/${recommended_user.sub_id}`;
       const res = await fetch(url, {
         method: "PUT",
         headers: {
@@ -36,16 +44,18 @@ export default function Swipe() {
       });
       const data = await res.json();
       console.log(data);
-      await recommend(router);
+      await recommend();
     } catch (err) {
       console.log(err);
     }
   }
 
-  async function swipe_right(router: NextRouter) {
+  async function swipe_right() {
     try {
-      const sub_id = router.asPath.split("/")[2];
-      const url = process.env.NEXT_PUBLIC_BASE_URL + `/swipe_right/${sub_id}`;
+      if (!recommended_user) return;
+      const url =
+        process.env.NEXT_PUBLIC_BASE_URL +
+        `/swipe_right/${sub_id}/${recommended_user.sub_id}`;
       const res = await fetch(url, {
         method: "PUT",
         headers: {
@@ -55,23 +65,16 @@ export default function Swipe() {
       });
       const data = await res.json();
       console.log(data);
-      await recommend(router);
+      await recommend();
     } catch (err) {
       console.log(err);
     }
   }
 
-  async function recommend(router: NextRouter) {
+  async function recommend() {
     try {
-      const sub_id = router.asPath.split("/")[2];
       const url = process.env.NEXT_PUBLIC_BASE_URL + `/recommend/${sub_id}`;
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          accept: "application/json",
-        },
-      });
+      const res = await fetch(url, { credentials: "include" });
       const data = await res.json();
       console.log(data);
       set_recommended_user(data);
@@ -81,34 +84,49 @@ export default function Swipe() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <div className="w-72 h-96 bg-white rounded-lg shadow-md">
-        <img
-          src={recommended_user?.imageUrl}
-          alt={recommended_user?.name}
-          className="w-full h-64 object-cover rounded-t-lg"
-        />
-        <div className="p-4">
-          <h2 className="text-2xl font-semibold">
-            {recommended_user?.name}, {recommended_user?.age}
-          </h2>
-          <p className="text-gray-600">{recommended_user?.bio}</p>
+    <>
+      <Navbar is_connected={is_connected} />
+      {recommended_user === "Need to fetch more users" ? (
+        <div className="bg-gray-100 min-h-screen">
+          <p className="text-black p-4">{recommended_user}</p>
         </div>
-      </div>
-      <div className="mt-4">
-        <button
-          onClick={() => swipe_left(router)}
-          className="bg-red-500 text-white px-4 py-2 rounded-lg mr-4"
-        >
-          No
-        </button>
-        <button
-          onClick={() => swipe_right(router)}
-          className="bg-green-500 text-white px-4 py-2 rounded-lg"
-        >
-          Yes
-        </button>
-      </div>
-    </div>
+      ) : (
+        <div className="bg-gray-100 min-h-screen">
+          <div className="flex flex-col items-center justify-center h-screen">
+            <div className="w-72 h-96 bg-white rounded-lg shadow-md">
+              <img
+                src={recommended_user?.imageUrl}
+                alt={recommended_user?.name}
+                className="w-full h-64 object-cover rounded-t-lg"
+              />
+              <div className="p-4">
+                <h2 className="text-2xl font-semibold">
+                  <p className="text-black">
+                    {recommended_user?.first_name}, {recommended_user?.age}
+                  </p>
+                </h2>
+                <p className="text-gray-600">
+                  {recommended_user?.project_interests}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <button
+                onClick={swipe_left}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg mr-4"
+              >
+                No
+              </button>
+              <button
+                onClick={swipe_right}
+                className="bg-green-500 text-white px-4 py-2 rounded-lg"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

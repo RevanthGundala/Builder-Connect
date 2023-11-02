@@ -15,10 +15,10 @@ use mongodb::{
     Client, Collection, bson::Bson
 };
 
-#[put("/swipe_left/{sub_id}")]
-pub async fn swipe_left(db: Data<MongoRepo>, user_path: Path<String>, other_user_path: Path<String>) -> HttpResponse {
-    let (user_id, other_user_id) =(user_path.into_inner(), other_user_path.into_inner());
-    if user_id.is_empty() || other_user_id.is_empty() {
+#[put("/swipe_left/{sub_id}/{other_sub_id}")]
+pub async fn swipe_left(db: Data<MongoRepo>, path: Path<(String, String)>) -> HttpResponse {
+    let (user_id, other_user_id) = path.into_inner();
+    if user_id.is_empty() || other_user_id.is_empty() || user_id == other_user_id {
         return HttpResponse::BadRequest().body("invalid ID");
     }
     let user = db.get_user(&user_id)
@@ -39,10 +39,10 @@ pub async fn swipe_left(db: Data<MongoRepo>, user_path: Path<String>, other_user
     }
 }
 
-#[put("/swipe_right/{sub_id}")]
-pub async fn swipe_right(db: Data<MongoRepo>, user_path: Path<String>, other_user_path: Path<String>) -> HttpResponse {
-    let (user_id, other_user_id) =(user_path.into_inner(), other_user_path.into_inner());
-    if user_id.is_empty() || other_user_id.is_empty() {
+#[put("/swipe_right/{sub_id}/{other_sub_id}")]
+pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>, other_user_path: Path<String>) -> HttpResponse {
+    let (user_id, other_user_id) = path.into_inner();
+    if user_id.is_empty() || other_user_id.is_empty() || user_id == other_user_id {
         return HttpResponse::BadRequest().body("invalid ID");
     }
     let mut user: User = db.get_user(&user_id)
@@ -94,15 +94,16 @@ pub async fn view_matches(db: Data<MongoRepo>, path: Path<String>) -> HttpRespon
     }
 }
 
-fn get_users_that_cannot_match(user: &User) -> Vec<String> {
+// TODO: Store this in DB as separate field so we dont have to recalculate
+fn get_users_that_cannot_match(user: User) -> Vec<String> {
     let mut users_cannot_match = vec![vec![user.sub_id.clone().unwrap()]];
-    if let Some(left_swipes) = &user.left_swipes {
+    if let Some(left_swipes) = user.left_swipes {
         users_cannot_match.push(left_swipes.to_owned());
     }
-    if let Some(right_swipes) = &user.right_swipes {
+    if let Some(right_swipes) = user.right_swipes {
         users_cannot_match.push(right_swipes.to_owned());
     }
-    if let Some(matches) = &user.matches {
+    if let Some(matches) = user.matches {
         users_cannot_match.push(matches.to_owned());
     }
     users_cannot_match.into_iter().flatten().collect()
@@ -118,7 +119,7 @@ pub async fn recommend_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResp
 
     // get the the top 5 users with the highest cosine similarity
     // ensure they are not already matched + swiped on
-    let users_cannot_match = get_users_that_cannot_match(&user);
+    let users_cannot_match = get_users_that_cannot_match(user.clone());
     if let Some(embeddings) = &user.vector_embeddings {
         if embeddings.len() == 0 {
             return HttpResponse::Ok().body("No embeddings found");

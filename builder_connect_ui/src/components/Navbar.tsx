@@ -14,7 +14,19 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
   }
 
   useEffect(() => {
-    set_sub_id(router.asPath.split("/")[2]);
+    check_session();
+
+    async function check_session() {
+      try {
+        const url = process.env.NEXT_PUBLIC_BASE_URL + `/get_session`;
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json();
+        data === "Not set." ? set_sub_id("") : set_sub_id(data);
+        is_connected ? console.log("Connected") : console.log("Not connected");
+      } catch (err) {
+        console.log(err);
+      }
+    }
   }, [sub_id]);
 
   return (
@@ -34,23 +46,28 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
               </Link>
             </div>
             <div className="p-2">
-              <Link className="p-2" href={`/recommend/${sub_id}`}>
+              <Link className="p-2" href={`/swipe/${sub_id}`}>
                 Swipe
               </Link>
             </div>
           </>
         ) : (
-          <div>
-            <Link className="p-2" href={`/SignIn`}>
-              Profile
-            </Link>
-            <Link className="p-2" href={`/SignIn`}>
-              Matches
-            </Link>
-            <Link className="p-2" href={`/SignIn`}>
-              Swipe
-            </Link>
-          </div>
+          <>
+            <div className="p-2">
+              <Link className="p-2" href={`/SignIn`}>
+                Profile
+              </Link>
+              <div className="p-2"></div>
+              <Link className="p-2" href={`/SignIn`}>
+                Matches
+              </Link>
+            </div>
+            <div className="p-2">
+              <Link className="p-2" href={`/SignIn`}>
+                Swipe
+              </Link>
+            </div>
+          </>
         )}
         <div className="p-2">
           <Link href="/About">About</Link>
