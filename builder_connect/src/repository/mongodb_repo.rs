@@ -92,6 +92,7 @@ impl MongoRepo {
                     "location": new_user.location,  
                     "employer": new_user.employer,
                     "reason": new_user.reason,
+                    "project_interests": new_user.project_interests,
                     "personality_interests": new_user.personality_interests,
                     "skills": new_user.skills,
                     "right_swipes": new_user.right_swipes,

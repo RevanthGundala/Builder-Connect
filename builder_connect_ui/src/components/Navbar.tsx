@@ -41,31 +41,22 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
               <Link href={`/view/${sub_id}`}>Profile</Link>
             </div>
             <div className="p-2">
-              <Link className="p-2" href={`/matches/${sub_id}`}>
-                Matches
-              </Link>
+              <Link href={`/matches/${sub_id}`}>Matches</Link>
             </div>
             <div className="p-2">
-              <Link className="p-2" href={`/swipe/${sub_id}`}>
-                Swipe
-              </Link>
+              <Link href={`/swipe/${sub_id}`}>Swipe</Link>
             </div>
           </>
         ) : (
           <>
             <div className="p-2">
-              <Link className="p-2" href={`/SignIn`}>
-                Profile
-              </Link>
-              <div className="p-2"></div>
-              <Link className="p-2" href={`/SignIn`}>
-                Matches
-              </Link>
+              <Link href={`/SignIn`}>Profile</Link>
             </div>
             <div className="p-2">
-              <Link className="p-2" href={`/SignIn`}>
-                Swipe
-              </Link>
+              <Link href={`/SignIn`}>Matches</Link>
+            </div>
+            <div className="p-2">
+              <Link href={`/SignIn`}>Swipe</Link>
             </div>
           </>
         )}

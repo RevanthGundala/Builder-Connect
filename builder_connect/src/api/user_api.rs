@@ -71,7 +71,7 @@ pub async fn edit_profile(
         }
         Err(_) => return HttpResponse::InternalServerError().body("Error generating embeddings"),
     }
-    let update_result = db.update_user(&sub_id, data).await;
+    let update_result = db.update_user(&sub_id, data.clone()).await;
     match update_result {
         Ok(update) => {
             if update.matched_count == 1 {
