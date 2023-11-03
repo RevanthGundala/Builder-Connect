@@ -1,23 +1,6 @@
 import Navbar from "@/components/Navbar";
 import { NextRouter, useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-const matchesData = [
-  {
-    id: 1,
-    name: "Alice",
-    age: 28,
-    bio: "Loves hiking and traveling.",
-    imageUrl: "alice.jpg",
-  },
-  {
-    id: 2,
-    name: "Bob",
-    age: 24,
-    bio: "Passionate about photography.",
-    imageUrl: "bob.jpg",
-  },
-  // Add more match data here
-];
 
 export default function Matches() {
   const router = useRouter();
@@ -65,10 +48,10 @@ export default function Matches() {
     <>
       <Navbar is_connected={is_connected} />
 
-      <div className="bg-gray-100 p-4 min-h-screen">
+      <div className="bg-gray-100 p-4">
         <h1 className="text-2xl text-black font-semibold mb-4">Your Matches</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {matches.length > 0 ? (
+          {matches.length >
             matches.map((match: any) => (
               <div
                 key={match.sub_id}
@@ -86,16 +69,7 @@ export default function Matches() {
                   <p className="text-gray-600">{match.bio}</p>
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="bg-white rounded shadow-md p-4">
-              <h2 className="text-xl font-semibold">
-                <p className="text-black">
-                  No matches yet. Swipe to find some!
-                </p>
-              </h2>
-            </div>
-          )}
+            ))}
         </div>
       </div>
     </>
