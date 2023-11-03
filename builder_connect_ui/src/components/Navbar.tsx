@@ -38,13 +38,13 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
         {is_connected ? (
           <>
             <div className="p-2">
-              <Link href={`/view/${sub_id}`}>Profile</Link>
+              <Link href={`/Profile`}>Profile</Link>
             </div>
             <div className="p-2">
-              <Link href={`/matches/${sub_id}`}>Matches</Link>
+              <Link href={`/Match`}>Matches</Link>
             </div>
             <div className="p-2">
-              <Link href={`/swipe/${sub_id}`}>Swipe</Link>
+              <Link href={`/Swipe`}>Swipe</Link>
             </div>
           </>
         ) : (

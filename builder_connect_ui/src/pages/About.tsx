@@ -26,25 +26,61 @@ export default function About() {
 
       {/* Hero Section */}
       <header
-        className="py-16 bg-cover bg-center relative"
+        className="py-8 bg-cover bg-center relative"
         style={{ backgroundImage: 'url("your-hero-image.jpg")' }}
       >
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="container mx-auto relative z-10 text-center">
-          <h1 className="text-5xl text-white font-extrabold leading-tight">
-            Builder Connect
+          <h1 className="text-4xl text-white font-extrabold leading-tight">
+            About
           </h1>
         </div>
       </header>
 
       {/* Features Section */}
-      <section className="py-16">
+      <section className="py-16 bg-gray-100">
         <div className="container mx-auto text-center">
-          <h2 className="text-3xl text-blue-500 font-semibold pb-2">About</h2>
-          <p className="text-black">
+          <h2 className="text-2xl font-bold text-blue-500 p-2">
+            What is Builder Connect?
+          </h2>
+          <p className="text-gray-800 text-lg text-center">
             Builder Connect is a platform that connects builders with one
-            another. It is designed for people who want to create projects to do
-            multiple things
+            another.
+          </p>
+          <br />
+          <h2 className="text-2xl font-bold text-blue-500 p-2">
+            Who is Builder Connect For?
+          </h2>
+          <p className="text-gray-800 text-lg text-center">
+            If you want to work on a side project or have an amazing idea for a
+            startup <br /> and don't have the right person to work with, then
+            Builder Connect is for you!
+          </p>
+          <br />
+          <h2 className="text-2xl font-bold text-blue-500 p-2">
+            How does it work?
+          </h2>
+          <p className="text-gray-800 text-lg text-center">
+            If you have ever used Tinder or a similar matching app, then you
+            will be pretty comfortable. <br />
+            Builder Connect uses a matching algorithm to connect people who have
+            similar interests.
+          </p>
+          <br />
+          <h2 className="text-2xl font-bold text-blue-500 p-2">
+            How do I get started?
+          </h2>
+          <p className="text-gray-800 text-lg">
+            1. Sign up for an account (Currently only Google Sign In is
+            supported)
+            <br />
+            2. Fill out your profile
+            <br />
+            3. Start swiping!
+            <br />
+            4. When you get a match, you can have a quick chat with the other
+            person <br />
+            to see if you have a project in mind that you both want to work on.
           </p>
         </div>
       </section>

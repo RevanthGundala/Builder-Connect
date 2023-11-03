@@ -5,7 +5,9 @@ import React, { useState, useEffect } from "react";
 export default function Swipe() {
   const [is_connected, set_is_connected] = useState(false);
   const [sub_id, set_sub_id] = useState("");
-  const [recommended_user, set_recommended_user] = useState<any>({});
+  const [recommended_user, set_recommended_user] = useState<any>(
+    "Need to fetch more users"
+  );
 
   useEffect(() => {
     check_session();

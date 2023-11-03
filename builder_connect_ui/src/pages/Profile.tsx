@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 
 export default function Profile() {
-  const router = useRouter();
   const [profile, set_profile] = useState<any>({});
   const [image_url, set_image_url] = useState("");
   const [first_name, set_first_name] = useState("");
