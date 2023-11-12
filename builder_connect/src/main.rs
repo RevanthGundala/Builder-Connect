@@ -29,6 +29,8 @@ pub struct DiscordOAuthClient{
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "lowercase")] 
+#[serde(tag = "client_type", content = "value")]
 pub enum ClientType{
     Google,
     Discord
@@ -118,7 +120,7 @@ async fn main() -> std::io::Result<()> {
             .service(recommend_user)
             .service(view_matches)
             .service(login)
-            .service(google_login_callback)
+            .service(login_callback)
             .service(logout)
             .service(get_session)
     })
