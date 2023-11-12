@@ -47,7 +47,7 @@ const LandingPage = () => {
           <p className="text-2xl text-white mt-4">Build the Future</p>
           {is_connected ? (
             <Link
-              href={`/swipe/${sub_id}`}
+              href={`/Swipe`}
               className="mt-6 inline-block bg-blue-500 text-white font-semibold rounded-full py-3 px-8 hover:bg-blue-700"
             >
               Get Started

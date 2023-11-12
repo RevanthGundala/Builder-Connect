@@ -22,9 +22,9 @@ pub enum Viewability {
 } 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserView{
-    pub first_name: Viewability,
-    pub last_name: Viewability,
+    pub username: Viewability,
     pub email: Viewability,
+    pub discord: Viewability,
     pub github: Viewability,
     pub website: Viewability,
     pub age: Viewability,
@@ -39,9 +39,9 @@ pub struct UserView{
 impl UserView{
     fn default() -> Self {
         UserView {
-            first_name: Viewability::Private,
-            last_name: Viewability::Private,
+            username: Viewability::Public,
             email: Viewability::Private,
+            discord: Viewability::Private,
             github: Viewability::Private,
             website: Viewability::Private,
             age: Viewability::Private,
@@ -69,46 +69,15 @@ pub struct VectorEmbedding{
     pub matches: Vec<f32>,
 }
 
-// impl VectorEmbedding {
-//     pub fn default() -> Self {
-//         VectorEmbedding {
-//             age: vec![],
-//             location: vec![],
-//             employer: vec![],
-//             reason: vec![],
-//             project_interests: vec![],
-//             personality_interests: vec![],
-//             skills: vec![],
-//             right_swipes: vec![],
-//             left_swipes: vec![],
-//             matches: vec![],
-//         }
-//     }
-
-//     pub fn to_vec(&self) -> Vec<f32> {
-//         vec![
-//             self.age.clone(),
-//             self.location.clone(),
-//             self.employer.clone(),
-//             self.reason.clone(),
-//             self.project_interests.clone(),
-//             // self.personality_interests.clone(),
-//             // self.skills.clone(),
-//             // self.right_swipes.clone(),
-//             // self.left_swipes.clone(),
-//             // self.matches.clone(),
-//         ].into_iter().flatten().collect()
-//     }
-// }
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub sub_id: Option<String>,
     pub image_url: Option<String>,
-    pub first_name: String,
-    pub last_name: String,
+    pub username: String,
     pub email: String,
+    pub discord: String,
     pub github: Option<String>, 
     pub website: Option<String>, 
     pub age: Option<String>, 
@@ -131,9 +100,9 @@ impl User {
             id: Some(ObjectId::new()),
             sub_id: Some(sub_id),
             image_url: Some("".to_string()),
-            first_name: "".to_string(),
-            last_name: "".to_string(),
+            username: "".to_string(),
             email: "".to_string(),
+            discord: "".to_string(),
             github: Some("".to_string()),
             website: Some("".to_string()),
             age: Some("".to_string()),

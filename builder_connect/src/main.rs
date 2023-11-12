@@ -2,7 +2,7 @@ mod api;
 mod models;
 mod repository;
 use crate::api::user_actions::*;
-
+use serde::{Deserialize, Serialize};
 use actix_web::cookie::{ SameSite };
 use actix_session::{ SessionMiddleware, Session };
 use actix_session::config::{ BrowserSession, CookieContentSecurity };
@@ -20,23 +20,68 @@ use oauth2::{basic::BasicClient,
 };
 use actix_cors::Cors;
 
-pub struct OAuthClient {
+pub struct GoogleOAuthClient {
     client: BasicClient,
+}
+
+pub struct DiscordOAuthClient{
+    client: BasicClient,
+}
+
+#[derive(Debug, Deserialize)]
+pub enum ClientType{
+    Google,
+    Discord
+}
+
+impl ClientType{
+    pub fn new_google_data() -> Data<GoogleOAuthClient> {
+        let [client_id, client_secret, auth_url, token_url, redirect_url] = load_google_env_variables();
+        let client = BasicClient::new(
+            ClientId::new(client_id),
+            Some(ClientSecret::new(client_secret)),
+            AuthUrl::new(auth_url).unwrap(),
+            Some(TokenUrl::new(token_url).unwrap()))
+            .set_redirect_uri(RedirectUrl::new(redirect_url).unwrap());
+        let oauth_client = GoogleOAuthClient { client };
+        let oauth_client_data = Data::new(oauth_client);
+        oauth_client_data
+    }
+
+    pub fn new_discord_data() -> Data<DiscordOAuthClient> {
+        let [client_id, client_secret, auth_url, token_url, redirect_url] = load_discord_env_variables();
+        let client = BasicClient::new(
+            ClientId::new(client_id),
+            Some(ClientSecret::new(client_secret)),
+            AuthUrl::new(auth_url).unwrap(),
+            Some(TokenUrl::new(token_url).unwrap()))
+            .set_redirect_uri(RedirectUrl::new(redirect_url).unwrap());
+        let oauth_client = DiscordOAuthClient { client };
+        let oauth_client_data = Data::new(oauth_client);
+        oauth_client_data
+    }
+}
+
+struct OAuthClientData {
+    google_client_data: Data<GoogleOAuthClient>,
+    discord_client_data: Data<DiscordOAuthClient>,
+}
+
+fn get_client_data() -> OAuthClientData {
+    OAuthClientData { 
+        google_client_data: ClientType::new_google_data(), 
+        discord_client_data: ClientType::new_discord_data() 
+    }
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let db = MongoRepo::init().await;
     let db_data = Data::new(db);
-    let [client_id, client_secret, auth_url, token_url, redirect_url] = load_env_variables();
-    let client = BasicClient::new(
-        ClientId::new(client_id),
-        Some(ClientSecret::new(client_secret)),
-        AuthUrl::new(auth_url).unwrap(),
-        Some(TokenUrl::new(token_url).unwrap()))
-        .set_redirect_uri(RedirectUrl::new(redirect_url).unwrap());
-    let oauth_client = OAuthClient { client };
-    let oauth_client_data = Data::new(oauth_client);
+    let OAuthClientData{
+        google_client_data,
+        discord_client_data,
+    } = get_client_data();
     let signing_key = Key::generate();  
     HttpServer::new(move || {
         // let cors = Cors::default()
@@ -49,7 +94,8 @@ async fn main() -> std::io::Result<()> {
         let cors = Cors::permissive();
         App::new()
             .app_data(db_data.clone())
-            .app_data(oauth_client_data.clone())
+            .app_data(google_client_data.clone())
+            .app_data(discord_client_data.clone())
             .wrap(cors)
             .wrap(
                 SessionMiddleware::builder(
@@ -72,7 +118,7 @@ async fn main() -> std::io::Result<()> {
             .service(recommend_user)
             .service(view_matches)
             .service(login)
-            .service(login_callback)
+            .service(google_login_callback)
             .service(logout)
             .service(get_session)
     })

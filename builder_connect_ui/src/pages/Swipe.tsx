@@ -65,6 +65,7 @@ export default function Swipe() {
           accept: "application/json",
         },
       });
+      console.log("res: ", res);  
       const data = await res.json();
       console.log(data);
       await recommend();

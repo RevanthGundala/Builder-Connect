@@ -1,4 +1,4 @@
-use crate::{models::user_model::{User, VectorEmbedding}, repository::mongodb_repo::MongoRepo};
+use crate::{models::user_model::User, repository::mongodb_repo::MongoRepo};
 use actix_web::{
     web::{Data, Path},
     put,
@@ -9,11 +9,7 @@ use std::env;
 extern crate dotenv;
 use dotenv::dotenv;
 use reqwest::{Response, header::HeaderValue};
-use mongodb::{
-    bson::{self, extjson::de::Error, doc, Document},
-    results::InsertOneResult,
-    Client, Collection, bson::Bson
-};
+use mongodb::{bson::{self, doc}};
 
 #[put("/swipe_left/{sub_id}/{other_sub_id}")]
 pub async fn swipe_left(db: Data<MongoRepo>, path: Path<(String, String)>) -> HttpResponse {
@@ -40,12 +36,13 @@ pub async fn swipe_left(db: Data<MongoRepo>, path: Path<(String, String)>) -> Ht
 }
 
 #[put("/swipe_right/{sub_id}/{other_sub_id}")]
-pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>, other_user_path: Path<String>) -> HttpResponse {
+pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> HttpResponse {
+    println!("Swipe right");
     let (user_id, other_user_id) = path.into_inner();
     if user_id.is_empty() || other_user_id.is_empty() || user_id == other_user_id {
         return HttpResponse::BadRequest().body("invalid ID");
     }
-    let mut user: User = db.get_user(&user_id)
+    let user: User = db.get_user(&user_id)
         .await
         .expect("DB error");
 
@@ -53,20 +50,31 @@ pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>, othe
         .await
         .expect("DB error");
     
-    let mut user_right_swipes = user.clone().right_swipes.unwrap();
+    let mut user_right_swipes = user.right_swipes.unwrap();
     user_right_swipes.push(other_user_id.clone());
-
+    let mut updated_user = User{
+        right_swipes: Some(user_right_swipes),
+        ..user
+    };
+    println!("Before match exists");
     if match_exists(&other_user, &user_id) {
-        let mut user_matches = user.matches.unwrap();
+        let mut user_matches = updated_user.matches.unwrap();
         user_matches.push(other_user_id.clone());
         let mut other_user_matches = other_user.matches.unwrap();
         other_user_matches.push(user_id.clone());
-        user.matches = Some(user_matches);
-        other_user.matches = Some(other_user_matches);
+        updated_user = User{
+            matches: Some(user_matches),
+            ..updated_user
+        };
+        other_user = User{
+            matches: Some(other_user_matches),
+            ..other_user
+        };
     }
 
-    let user_res = db.update_user(&user_id, user.clone()).await;
+    let user_res = db.update_user(&user_id, updated_user.clone()).await;
     let other_user_res = db.update_user(&other_user_id, other_user.clone()).await;
+    println!("Before match");
     match (user_res, other_user_res) {
         (Ok(_), Ok(_)) => HttpResponse::Ok().json("Swipe Right Success"),
         (Err(_), Err(_)) => HttpResponse::InternalServerError().body("DB error"),
