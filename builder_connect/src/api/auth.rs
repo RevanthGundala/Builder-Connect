@@ -164,7 +164,6 @@ pub async fn login(
 #[get("/login/callback/google")]
 pub async fn login_callback(
     google_data: Data<GoogleOAuthClient>, 
-    discord_data: Data<DiscordOAuthClient>,
     req: Query<OAuthRequest>, 
     session: Session) -> HttpResponse {
     match validate(&session).await {

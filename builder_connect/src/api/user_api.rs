@@ -32,7 +32,7 @@ pub async fn view_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpRespon
     let user_detail = db.get_user(&sub_id).await;
     match user_detail {
         Ok(user) => HttpResponse::Ok().json(user),
-        Err(MongoError) => {
+        Err(_) => {
             let client = Client::new();
             let res = client.post(format!("http://localhost:8080/create/{}", sub_id))
                 .send()
@@ -40,7 +40,6 @@ pub async fn view_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpRespon
                 .unwrap();
             HttpResponse::Ok().json(res.text().await.unwrap())
         }
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
 
