@@ -52,12 +52,15 @@ impl MongoRepo {
         let user_detail = self
             .col
             .find_one(filter, None)
-            .await
-            .ok()
-            .expect("Error getting user's detail");
+            .await;
         match user_detail {
-            Some(user) => Ok(user),
-            None => Err(DeserializationError {message: "No user found".to_string()}),
+            Ok(user) => {
+                match user {
+                    Some(user) => Ok(user),
+                    None => Err(DeserializationError {message: "No user found".to_string()}),
+                }
+            }
+            Err(_) => Err(DeserializationError {message: "No user found".to_string()}),
         }
     }
 

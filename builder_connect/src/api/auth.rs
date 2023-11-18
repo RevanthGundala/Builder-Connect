@@ -14,7 +14,7 @@ use actix_session::Session;
 extern crate dotenv;
 use dotenv::dotenv;
 use crate::{GoogleOAuthClient, DiscordOAuthClient, ClientType};
-use reqwest::Url;
+use reqwest;
 
 #[derive(Debug, Deserialize)]
 pub struct OAuthRequest {
@@ -112,8 +112,8 @@ pub async fn login(
                         let client = google_data.client.clone();
                         let (auth_url, csrf_token) = client
                             .authorize_url(CsrfToken::new_random)
-                            .add_scope(Scope::new("https://www.googleapis.com/auth/userinfo.profile".to_string()))
-                            .add_scope(Scope::new("https://www.googleapis.com/auth/userinfo.email".to_string()))
+                            .add_scope(Scope::new("profile".to_string()))
+                            .add_scope(Scope::new("email".to_string()))
                             // .set_pkce_challenge(pkce_challenge)
                             .url();
                         return HttpResponse::Ok().json(auth_url.to_string());
@@ -135,34 +135,58 @@ pub async fn login(
         Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
-/*
- let client = discord_data.client.clone();
-                        let token_result = client
-                            .exchange_code(AuthorizationCode::new(req.into_inner().code))
-                            .request_async(async_http_client)
-                            .await
-                            .unwrap();
-                        let url = "https://discord.com/api/users/@me";
-                        let token_type = token_result.token_type();
-                        let access_token = token_result.access_token().secret();
 
-                        let mut headers = reqwest::header::HeaderMap::new();
-                        headers.insert(reqwest::header::AUTHORIZATION, format!("{:?} {}", token_type, access_token).parse().unwrap());
-
-                        let res = reqwest::Client::new()
-                            .get(url)
-                            .headers(headers)
-                            .send()
-                            .await
-                            .unwrap();
-                        let res_text = res.text().await.unwrap();
-                        println!("{:?}", res_text);
-                        let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
-                        session.insert("sub_id", claims.id.clone()).unwrap();
-                        let _ = reqwest::get(format!("http://localhost:8080/view/{}", claims.id.clone())).await.expect("Error"); */
 // TODO: Add discord name and email and image url to the database
+#[get("/login/callback/discord")]
+pub async fn login_callback_discord(
+    discord_data: Data<DiscordOAuthClient>, 
+    req: Query<OAuthRequest>, 
+    session: Session) -> HttpResponse {
+    match validate(&session).await {
+        Ok(res) => {
+            if !res {
+                let client = discord_data.client.clone();
+                let token_result = client
+                    .exchange_code(AuthorizationCode::new(req.into_inner().code))
+                    // .set_pkce_verifier(PkceCodeVerifier::new(verifier.into_inner()))
+                    .request_async(async_http_client)
+                    .await.unwrap();
+                let url = "https://discord.com/api/users/@me";
+                let token_type = token_result.token_type();
+                let access_token = token_result.access_token().secret();
+                let mut headers = reqwest::header::HeaderMap::new();
+                headers.insert(reqwest::header::AUTHORIZATION, format!("{:?} {}", token_type, access_token).parse().unwrap());
+                let res = reqwest::Client::new()
+                    .get(url)
+                    .headers(headers)
+                    .send()
+                    .await
+                    .unwrap();
+                let res_text = res.text().await.unwrap();
+                let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
+                session.insert("sub_id", claims.id.clone()).unwrap();
+                let url = format!("http://localhost:3000");
+                match reqwest::get(format!("http://localhost:8080/view/{}", claims.id.clone())).await {
+                    Ok(user) => return HttpResponse::Found().header("Location", url).finish(),
+                    Err(err) => {
+                        let client = reqwest::Client::new();
+                        let _ = client.post(format!("http://localhost:8080/create/{}", claims.id.clone()))
+                            .send()
+                            .await;
+                        return HttpResponse::InternalServerError().body(err.to_string());
+                    }
+                }
+            }
+            else{
+                return HttpResponse::Ok().json("/");
+            }
+        }
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
 #[get("/login/callback/google")]
-pub async fn login_callback(
+pub async fn login_callback_google(
     google_data: Data<GoogleOAuthClient>, 
     req: Query<OAuthRequest>, 
     session: Session) -> HttpResponse {
@@ -175,16 +199,26 @@ pub async fn login_callback(
                     // .set_pkce_verifier(PkceCodeVerifier::new(verifier.into_inner()))
                     .request_async(async_http_client)
                     .await.unwrap();
-
                 let url = format!("https://openidconnect.googleapis.com/v1/userinfo?alt=json&access_token={}", token_result.access_token().secret());
                 let res = reqwest::get(&url).await.unwrap();
                 let res_text = res.text().await.unwrap();
                 let claims: GoogleClaims = serde_json::from_str(&res_text).unwrap();
                 session.insert("sub_id", claims.sub.clone()).unwrap();
-                let _ = reqwest::get(format!("http://localhost:8080/view/{}", claims.sub.clone())).await.expect("Error");
+                let url = format!("http://localhost:3000");
+                match reqwest::get(format!("http://localhost:8080/view/{}", claims.sub.clone())).await {
+                    Ok(user) => return HttpResponse::Found().header("Location", url).finish(),
+                    Err(err) => {
+                        let client = reqwest::Client::new();
+                        let _ = client.post(format!("http://localhost:8080/create/{}", claims.sub.clone()))
+                            .send()
+                            .await;
+                        return HttpResponse::InternalServerError().body(err.to_string());
+                    }
+                }
             }
-            let url = format!("http://localhost:3000");
-            return HttpResponse::Found().header("Location", url).finish();
+            else{
+                return HttpResponse::Ok().json("/");
+            }
         }
         Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
     }

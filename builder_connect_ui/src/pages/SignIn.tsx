@@ -1,4 +1,4 @@
-import GoogleSignIn from "@/components/GoogleSignIn";
+import Authenticate from "@/components/Authenticate";
 import React from "react";
 import GoogleButton from "react-google-button";
 
@@ -40,7 +40,7 @@ export default function SignIn() {
           </button>
         </form>
         <div className="p-4 flex flex-row justify-center">
-          <GoogleSignIn />
+          <Authenticate />
         </div>
         <p className="text-sm text-gray-500 mt-4">
           Don't have an account?{" "}

@@ -32,14 +32,7 @@ pub async fn view_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpRespon
     let user_detail = db.get_user(&sub_id).await;
     match user_detail {
         Ok(user) => HttpResponse::Ok().json(user),
-        Err(_) => {
-            let client = Client::new();
-            let res = client.post(format!("http://localhost:8080/create/{}", sub_id))
-                .send()
-                .await
-                .unwrap();
-            HttpResponse::Ok().json(res.text().await.unwrap())
-        }
+        Err(_) => HttpResponse::NotFound().body("No user found with specified ID"),
     }
 }
 
