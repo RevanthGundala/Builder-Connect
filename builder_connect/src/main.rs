@@ -110,7 +110,6 @@ async fn main() -> std::io::Result<()> {
                 .cookie_same_site(SameSite::Strict)
                 .build(),
             )
-            .service(create_profile)
             .service(view_profile)
             .service(view_all_profiles)
             .service(edit_profile) 

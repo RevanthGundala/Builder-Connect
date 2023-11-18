@@ -9,11 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroicons/react": "^2.0.18",
     "@react-oauth/google": "^0.11.1",
     "next": "14.0.1",
     "react": "^18",
     "react-dom": "^18",
-    "react-google-button": "^0.7.2"
+    "react-google-button": "^0.7.2",
+    "react-social-login-buttons": "^3.9.1"
   },
   "devDependencies": {
     "@types/node": "^20",

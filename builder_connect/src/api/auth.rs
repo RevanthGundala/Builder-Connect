@@ -15,6 +15,7 @@ extern crate dotenv;
 use dotenv::dotenv;
 use crate::{GoogleOAuthClient, DiscordOAuthClient, ClientType};
 use reqwest;
+use crate::{repository::mongodb_repo::MongoRepo};
 
 #[derive(Debug, Deserialize)]
 pub struct OAuthRequest {
@@ -28,17 +29,18 @@ pub struct OAuthRequest {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GoogleClaims {
     pub sub: String,
-    // pub given_name: String,
+    pub given_name: String,
     // pub family_name: String,
-    // pub email: String,
+    pub email: String,
+    pub picture: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DiscordClaims {
     pub id: String,
+    pub username: String, 
     pub avatar: String,
-    // pub family_name: String,
-    // pub email: String,
+    pub email: String,
 }
 
 
@@ -136,9 +138,9 @@ pub async fn login(
     }
 }
 
-// TODO: Add discord name and email and image url to the database
 #[get("/login/callback/discord")]
 pub async fn login_callback_discord(
+    db: Data<MongoRepo>, 
     discord_data: Data<DiscordOAuthClient>, 
     req: Query<OAuthRequest>, 
     session: Session) -> HttpResponse {
@@ -164,15 +166,27 @@ pub async fn login_callback_discord(
                     .unwrap();
                 let res_text = res.text().await.unwrap();
                 let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
+                println!("{:?}", claims);
                 session.insert("sub_id", claims.id.clone()).unwrap();
                 let url = format!("http://localhost:3000");
                 match reqwest::get(format!("http://localhost:8080/view/{}", claims.id.clone())).await {
-                    Ok(user) => return HttpResponse::Found().header("Location", url).finish(),
+                    Ok(res) => {
+                        if res.status() != 200 {
+                            match db.create_user(
+                                claims.id.clone(), 
+                                claims.username.to_string(), 
+                                claims.email.to_string(), 
+                                claims.username.to_string(), 
+                                format!("https://cdn.discordapp.com/avatars/{}/{}.png", claims.id.clone(), claims.avatar)).await {
+                                    Ok(user) =>  return HttpResponse::Found().header("Location", url).finish(),
+                                    Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
+                            }
+                        }
+                        else{
+                            return HttpResponse::Found().header("Location", url).finish();
+                        }   
+                    }
                     Err(err) => {
-                        let client = reqwest::Client::new();
-                        let _ = client.post(format!("http://localhost:8080/create/{}", claims.id.clone()))
-                            .send()
-                            .await;
                         return HttpResponse::InternalServerError().body(err.to_string());
                     }
                 }
@@ -187,6 +201,7 @@ pub async fn login_callback_discord(
 
 #[get("/login/callback/google")]
 pub async fn login_callback_google(
+    db: Data<MongoRepo>,
     google_data: Data<GoogleOAuthClient>, 
     req: Query<OAuthRequest>, 
     session: Session) -> HttpResponse {
@@ -203,15 +218,27 @@ pub async fn login_callback_google(
                 let res = reqwest::get(&url).await.unwrap();
                 let res_text = res.text().await.unwrap();
                 let claims: GoogleClaims = serde_json::from_str(&res_text).unwrap();
+                println!("{:?}", claims);
                 session.insert("sub_id", claims.sub.clone()).unwrap();
                 let url = format!("http://localhost:3000");
                 match reqwest::get(format!("http://localhost:8080/view/{}", claims.sub.clone())).await {
-                    Ok(user) => return HttpResponse::Found().header("Location", url).finish(),
+                    Ok(res) => {
+                        if res.status() != 200 {
+                            match db.create_user(
+                                claims.sub.clone(), 
+                                claims.given_name.to_string(), 
+                                claims.email.to_string(), 
+                                "".to_string(), 
+                                claims.picture).await {
+                                    Ok(user) =>  return HttpResponse::Found().header("Location", url).finish(),
+                                    Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
+                            }
+                        }
+                        else{
+                            return HttpResponse::Found().header("Location", url).finish();
+                        }   
+                    }
                     Err(err) => {
-                        let client = reqwest::Client::new();
-                        let _ = client.post(format!("http://localhost:8080/create/{}", claims.sub.clone()))
-                            .send()
-                            .await;
                         return HttpResponse::InternalServerError().body(err.to_string());
                     }
                 }

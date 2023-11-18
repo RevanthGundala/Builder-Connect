@@ -30,7 +30,7 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
   }, [sub_id]);
 
   return (
-    <nav className="bg-blue-500 p-4 flex flex-row">
+    <nav className="bg-blue-500 p-4 flex flex-row text-white">
       <header className="flex flex-row gap-24">
         <div className="p-2">
           <Link href="/">Home</Link>
@@ -38,7 +38,7 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
         {is_connected ? (
           <>
             <div className="p-2">
-              <Link href={`/Profile`}>Profile</Link>
+              <Link href={`/profile/View`}>Profile</Link>
             </div>
             <div className="p-2">
               <Link href={`/Match`}>Matches</Link>
@@ -60,9 +60,6 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
             </div>
           </>
         )}
-        <div className="p-2">
-          <Link href="/About">About</Link>
-        </div>
       </header>
       <header className="ml-auto">
         {!is_connected ? (

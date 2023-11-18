@@ -36,8 +36,20 @@ impl MongoRepo {
         MongoRepo { col }
     }
 
-    pub async fn create_user(&self, sub_id: String) -> Result<InsertOneResult, Error> {
+    pub async fn create_user(
+        &self, sub_id: String, 
+        username: String, 
+        email: String, 
+        discord: String, 
+        image_url: String) -> Result<InsertOneResult, Error> {
         let new_user = User::new(sub_id);
+        let new_user = User {
+            username,
+            email,
+            discord,
+            image_url,
+            ..new_user
+        };
         let res = self
             .col
             .insert_one(new_user, None)

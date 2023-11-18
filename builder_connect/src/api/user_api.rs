@@ -10,19 +10,6 @@ use actix_web::{
 use reqwest::Client;
 use super::user_actions::generate_embedding;
 
-#[post("/create/{sub_id}")]
-pub async fn create_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
-    let sub_id = path.into_inner();
-    if sub_id.is_empty() {
-        return HttpResponse::BadRequest().body("invalid ID");
-    } 
-    let user_detail = db.create_user(sub_id).await;
-    match user_detail {
-        Ok(user) => HttpResponse::Ok().json(user),
-        Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
-    }
-}
-
 #[get("/view/{sub_id}")]
 pub async fn view_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
     let sub_id = path.into_inner();
@@ -101,11 +88,9 @@ pub async fn delete_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResp
 // TODO: FIgure out better way to generate embeddings outside of just proj intersts
 async fn update_embedding(mut user: Json<User>, old_embeddings: Vec<f32>) -> Result<Vec<f32>, reqwest::Error> {
     let mut embeddings = user.vector_embeddings.as_mut().unwrap().to_owned();
-
     if (embeddings.is_empty() || embeddings != old_embeddings) && user.project_interests.is_some() {
         embeddings = generate_embedding(&user.project_interests.clone().unwrap()).await?;
     }
-
     Ok(embeddings)
 }
 
