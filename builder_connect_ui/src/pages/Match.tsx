@@ -29,7 +29,7 @@ export default function Matches() {
 
   return (
     <>
-      <Navbar sub_id={sub_id} set_sub_id={set_sub_id} />
+      <Navbar />
 
       <div className="bg-gray-100 p-4 min-h-screen">
         <h1 className="text-2xl text-black font-semibold mb-4">Your Matches</h1>

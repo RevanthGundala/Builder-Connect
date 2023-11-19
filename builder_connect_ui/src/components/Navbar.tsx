@@ -1,54 +1,41 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
-import { useLocalStorage } from "@uidotdev/usehooks";
+import { useLocalStorage } from "usehooks-ts";
+import { check_session } from "@/functions/check_session";
 
-export default function Navbar({
-  sub_id,
-  set_sub_id,
-}: {
-  sub_id: string;
-  set_sub_id: any;
-}) {
+export default function Navbar() {
   const router = useRouter();
-  //const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
+  const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
+  const [isClient, set_is_client] = useState(false);
 
   async function logout() {
     const url = process.env.NEXT_PUBLIC_BASE_URL + "/logout";
     const response = await fetch(url, { credentials: "include" });
     const data = await response.json();
+    const id = await check_session();
+    id ? set_sub_id(id) : set_sub_id("");
     router.push("/");
     console.log(data);
   }
 
-  // TODO: change sub_id to localstorage
   useEffect(() => {
+    set_is_client(true);
     if (sub_id === "") {
       let updating = true;
-      let sub = setInterval(() => {
-        check_session();
+      let sub = setInterval(async () => {
+        let id = await check_session();
+        if (id) set_sub_id(id);
       }, 3000);
       return () => {
         clearInterval(sub);
         updating = false;
       };
     }
-
-    async function check_session() {
-      try {
-        const url = process.env.NEXT_PUBLIC_BASE_URL + `/get_session`;
-        const res = await fetch(url, { credentials: "include" });
-        const data = await res.json();
-        data === "Not set." ? set_sub_id("") : set_sub_id(data);
-      } catch (err) {
-        console.log(err);
-      }
-    }
   }, [sub_id]);
 
   console.log("sub_id: ", sub_id);
-
-  return (
+  return isClient ? (
     <nav className="bg-blue-500 p-4 flex flex-row text-white">
       <header className="flex flex-row gap-24">
         <div className="p-2">
@@ -92,5 +79,7 @@ export default function Navbar({
         )}
       </header>
     </nav>
+  ) : (
+    <div>Loading</div>
   );
 }

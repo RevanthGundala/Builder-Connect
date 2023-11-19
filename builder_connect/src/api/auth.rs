@@ -169,6 +169,9 @@ pub async fn login_callback_discord(
                 println!("{:?}", claims);
                 session.insert("sub_id", claims.id.clone()).unwrap();
                 let url = format!("http://localhost:3000");
+                let response_body = serde_json::to_string(&serde_json::json!({
+                    "sub_id": format!("{}", claims.id.clone())
+                })).expect("Failed to serialize JSON");
                 match reqwest::get(format!("http://localhost:8080/view/{}", claims.id.clone())).await {
                     Ok(res) => {
                         if res.status() != 200 {
@@ -178,12 +181,19 @@ pub async fn login_callback_discord(
                                 claims.email.to_string(), 
                                 claims.username.to_string(), 
                                 format!("https://cdn.discordapp.com/avatars/{}/{}.png", claims.id.clone(), claims.avatar)).await {
-                                    Ok(user) =>  return HttpResponse::Found().header("Location", url).finish(),
+                                    Ok(user) => {
+                                    
+                                        HttpResponse::Found()
+                                            .header("Location", url)
+                                            .body(response_body)
+                                    },
                                     Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
                             }
                         }
                         else{
-                            return HttpResponse::Found().header("Location", url).finish();
+                            HttpResponse::Found()
+                                            .header("Location", url)
+                                            .body(response_body)
                         }   
                     }
                     Err(err) => {

@@ -4,6 +4,7 @@ import {
   DiscordLoginButton,
 } from "react-social-login-buttons";
 import { NextRouter, useRouter } from "next/router";
+import { useLocalStorage } from "usehooks-ts";
 
 enum AuthProvider {
   Google,
@@ -12,6 +13,7 @@ enum AuthProvider {
 
 export default function Authenticate() {
   const router = useRouter();
+  const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
 
   async function handle_auth(auth_provider: AuthProvider) {
     try {
@@ -24,6 +26,7 @@ export default function Authenticate() {
       }
       const response = await fetch(url, { credentials: "include" });
       const login_url = await response.json();
+      console.log("login_url: ", login_url);
       login_url === "/" ? router.push("/") : router.push(login_url);
     } catch (e) {
       console.log(e);

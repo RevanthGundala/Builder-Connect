@@ -4,18 +4,16 @@ import { useEffect, useState } from "react";
 import { NextRouter, useRouter } from "next/router";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import { useLocalStorage } from "usehooks-ts";
 
 const LandingPage = () => {
-  const [sub_id, set_sub_id] = useState("");
+  const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
 
   return (
     <div className="bg-gray-100">
-      <Navbar sub_id={sub_id} set_sub_id={set_sub_id} />
+      <Navbar />
       {/* Hero Section */}
-      <header
-        className="py-16 bg-cover bg-center relative"
-        style={{ backgroundImage: 'url("your-hero-image.jpg")' }}
-      >
+      <header className="py-16 bg-cover bg-center relative">
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="container mx-auto relative z-10 text-center">
           <h1 className="text-5xl text-white font-extrabold leading-tight">
