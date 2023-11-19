@@ -37,7 +37,7 @@ pub struct UserView{
 }
 
 impl UserView{
-    fn default() -> Self {
+    pub fn default() -> Self {
         UserView {
             username: Viewability::Public,
             email: Viewability::Private,

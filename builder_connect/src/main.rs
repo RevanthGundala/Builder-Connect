@@ -123,6 +123,7 @@ async fn main() -> std::io::Result<()> {
             .service(login_callback_discord)
             .service(logout)
             .service(get_session)
+            .service(create_many_users)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

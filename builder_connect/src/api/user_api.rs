@@ -9,6 +9,142 @@ use actix_web::{
 };
 use reqwest::Client;
 use super::user_actions::generate_embedding;
+use crate::models::user_model::UserView;
+use mongodb::{bson::oid::ObjectId, results::InsertOneResult};
+
+// test
+#[post("/create")]
+pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
+    let users = vec![
+        User {
+            id: Some(ObjectId::new()),
+            sub_id: Some(String::from("123456")),
+            image_url: String::from("https://example.com/user1.jpg"),
+            username: String::from("user1"),
+            email: String::from("user1@example.com"),
+            discord: String::from("user1#1234"),
+            github: Some(String::from("user1github")),
+            website: Some(String::from("https://user1.com")),
+            age: Some(String::from("25")),
+            location: Some(String::from("City1, Country1")),
+            employer: Some(String::from("Company1")),
+            reason: Some(String::from("Passionate about technology")),
+            project_interests: Some(String::from("Blockchain, AI")),
+            personality_interests: Some(String::from("Introverted, Analytical")),
+            skills: Some(String::from("Python, JavaScript, Solidity")),
+            right_swipes: Some(vec![]),
+            left_swipes: Some(vec![]),
+            matches: Some(vec![]),
+            public_fields: Some(UserView::default()),
+            vector_embeddings: Some(vec![]),
+        },
+        User {
+            id: Some(ObjectId::new()),
+            sub_id: Some(String::from("789012")),
+            image_url: String::from("https://example.com/user2.jpg"),
+            username: String::from("user2"),
+            email: String::from("user2@example.com"),
+            discord: String::from("user2#5678"),
+            github: Some(String::from("user2github")),
+            website: Some(String::from("https://user2.com")),
+            age: Some(String::from("30")),
+            location: Some(String::from("City2, Country2")),
+            employer: Some(String::from("Company2")),
+            reason: Some(String::from("Excited to collaborate on projects")),
+            project_interests: Some(String::from("IoT, Data Science")),
+            personality_interests: Some(String::from("Friendly, Creative")),
+            skills: Some(String::from("Java, C++, Python")),
+            right_swipes: Some(vec![]),
+            left_swipes: Some(vec![]),
+            matches: Some(vec![]),
+            public_fields: Some(UserView::default()),
+            vector_embeddings: Some(vec![]),
+        },
+        User {
+            id: Some(ObjectId::new()),
+            sub_id: Some(String::from("345678")),
+            image_url: String::from("https://example.com/user3.jpg"),
+            username: String::from("user3"),
+            email: String::from("user3@example.com"),
+            discord: String::from("user3#9012"),
+            github: Some(String::from("user3github")),
+            website: Some(String::from("https://user3.com")),
+            age: Some(String::from("22")),
+            location: Some(String::from("City3, Country3")),
+            employer: Some(String::from("University3")),
+            reason: Some(String::from("Keen on learning new technologies")),
+            project_interests: Some(String::from("Mobile App Development")),
+            personality_interests: Some(String::from("Outgoing, Adventurous")),
+            skills: Some(String::from("Swift, Kotlin, React Native")),
+            right_swipes: Some(vec![]),
+            left_swipes: Some(vec![]),
+            matches: Some(vec![]),
+            public_fields: Some(UserView::default()),
+            vector_embeddings: Some(vec![]),
+        },
+        User {
+            id: Some(ObjectId::new()),
+            sub_id: Some(String::from("567890")),
+            image_url: String::from("https://example.com/user4.jpg"),
+            username: String::from("user4"),
+            email: String::from("user4@example.com"),
+            discord: String::from("user4#3456"),
+            github: Some(String::from("user4github")),
+            website: Some(String::from("https://user4.com")),
+            age: Some(String::from("28")),
+            location: Some(String::from("City4, Country4")),
+            employer: Some(String::from("Startup4")),
+            reason: Some(String::from("Passionate about entrepreneurship")),
+            project_interests: Some(String::from("Artificial Intelligence")),
+            personality_interests: Some(String::from("Optimistic, Ambitious")),
+            skills: Some(String::from("JavaScript, Node.js, TensorFlow")),
+            right_swipes: Some(vec![]),
+            left_swipes: Some(vec![]),
+            matches: Some(vec![]),
+            public_fields: Some(UserView::default()),
+            vector_embeddings: Some(vec![]),
+        },
+        User {
+            id: Some(ObjectId::new()),
+            sub_id: Some(String::from("901234")),
+            image_url: String::from("https://example.com/user5.jpg"),
+            username: String::from("user5"),
+            email: String::from("user5@example.com"),
+            discord: String::from("user5#6789"),
+            github: Some(String::from("user5github")),
+            website: Some(String::from("https://user5.com")),
+            age: Some(String::from("35")),
+            location: Some(String::from("City5, Country5")),
+            employer: Some(String::from("Company5")),
+            reason: Some(String::from("Enthusiastic about open source projects")),
+            project_interests: Some(String::from("DevOps, Cloud Computing")),
+            personality_interests: Some(String::from("Analytical, Detail-oriented")),
+            skills: Some(String::from("Docker, Kubernetes, AWS")),
+            right_swipes: Some(vec![]),
+            left_swipes: Some(vec![]),
+            matches: Some(vec![]),
+            public_fields: Some(UserView::default()),
+            vector_embeddings: Some(vec![]),
+        },
+    ];
+    let mut res;
+    for user in users {
+        res = db
+            .col
+            .insert_one(user.clone(), None)
+            .await
+            .ok()
+            .expect("Error creating user");
+        let client = reqwest::Client::new();
+        client  
+            .put("http://localhost:8080/edit/".to_string() + user.sub_id.as_ref().unwrap())
+            .json(&user)
+            .send()
+            .await
+            .expect("Error updating user");
+    }
+    return HttpResponse::Ok().json("Users successfully created!");
+}
 
 #[get("/view/{sub_id}")]
 pub async fn view_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {

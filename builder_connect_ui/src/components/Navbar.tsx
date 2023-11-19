@@ -2,8 +2,13 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 
-export default function Navbar({ is_connected }: { is_connected: boolean }) {
-  const [sub_id, set_sub_id] = useState("");
+export default function Navbar({
+  sub_id,
+  set_sub_id,
+}: {
+  sub_id: string;
+  set_sub_id: any;
+}) {
   const router = useRouter();
 
   async function logout() {
@@ -14,7 +19,16 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
   }
 
   useEffect(() => {
-    check_session();
+    if (sub_id === "") {
+      let updating = true;
+      let sub = setInterval(() => {
+        check_session();
+      }, 1000);
+      return () => {
+        clearInterval(sub);
+        updating = false;
+      };
+    }
 
     async function check_session() {
       try {
@@ -22,7 +36,6 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
         const res = await fetch(url, { credentials: "include" });
         const data = await res.json();
         data === "Not set." ? set_sub_id("") : set_sub_id(data);
-        is_connected ? console.log("Connected") : console.log("Not connected");
       } catch (err) {
         console.log(err);
       }
@@ -35,7 +48,7 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
         <div className="p-2">
           <Link href="/">Home</Link>
         </div>
-        {is_connected ? (
+        {sub_id !== "" ? (
           <>
             <div className="p-2">
               <Link href={`/profile/View`}>Profile</Link>
@@ -62,7 +75,7 @@ export default function Navbar({ is_connected }: { is_connected: boolean }) {
         )}
       </header>
       <header className="ml-auto">
-        {!is_connected ? (
+        {sub_id !== "" ? (
           <div className="p-2">
             <Link href="/SignIn">Sign In</Link>
           </div>

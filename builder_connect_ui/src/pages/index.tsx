@@ -6,34 +6,11 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 
 const LandingPage = () => {
-  const router = useRouter();
-  const [is_connected, set_is_connected] = useState(false);
   const [sub_id, set_sub_id] = useState("");
-
-  useEffect(() => {
-    check_session();
-
-    async function check_session() {
-      try {
-        const url = process.env.NEXT_PUBLIC_BASE_URL + `/get_session`;
-        const res = await fetch(url, { credentials: "include" });
-        const data = await res.json();
-        if (data !== "Not set.") {
-          set_is_connected(true);
-          set_sub_id(data);
-        } else {
-          set_is_connected(false);
-        }
-        is_connected ? console.log("Connected") : console.log("Not connected");
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  }, [is_connected]);
 
   return (
     <div className="bg-gray-100">
-      <Navbar is_connected={is_connected} />
+      <Navbar sub_id={sub_id} set_sub_id={set_sub_id} />
       {/* Hero Section */}
       <header
         className="py-16 bg-cover bg-center relative"
@@ -45,7 +22,7 @@ const LandingPage = () => {
             Builder Connect
           </h1>
           <p className="text-2xl text-white mt-4">Build the Future</p>
-          {is_connected ? (
+          {sub_id !== "" ? (
             <Link
               href={`/Swipe`}
               className="mt-6 inline-block bg-blue-500 text-white font-semibold rounded-full py-3 px-8 hover:bg-blue-700"
