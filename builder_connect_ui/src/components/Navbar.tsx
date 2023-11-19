@@ -11,6 +11,7 @@ export default function Navbar({
   set_sub_id: any;
 }) {
   const router = useRouter();
+  //const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
 
   async function logout() {
     const url = process.env.NEXT_PUBLIC_BASE_URL + "/logout";
