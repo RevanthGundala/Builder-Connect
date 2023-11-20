@@ -3,6 +3,7 @@ import { NextRouter, useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import { useLocalStorage } from "usehooks-ts";
+import ParticleBackground from "@/components/ParticleBackground";
 
 export default function Edit() {
   const router = useRouter();
@@ -83,12 +84,11 @@ export default function Edit() {
   // TODO: Add image upload
   return (
     <>
+      <ParticleBackground />
       <Navbar />
-      <div className="bg-gray-100 min-h-screen flex flex-col items-center">
+      <div className="pt-12 bg-cover bg-center relative mx-auto flex flex-col items-center">
         <div className="bg-white p-8 rounded shadow-md w-96">
-          <h1 className="text-blue-500 text-center text-2xl font-semibold mb-4">
-            Edit Profile
-          </h1>
+          <h1 className="text-black text-center text-2xl mb-4">Edit Profile</h1>
           <form onSubmit={edit_profile}>
             <ProfileComponent
               text={"Username"}
@@ -182,7 +182,7 @@ export default function Edit() {
             /> */}
             <button
               type="submit"
-              className="w-full bg-blue-500 text-white rounded py-2"
+              className="w-full bg-black text-white rounded py-2"
             >
               Save Changes
             </button>

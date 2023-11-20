@@ -41,8 +41,7 @@ const LandingPage = () => {
       {/* Features Section */}
       <section className="mt-24 bg-cover bg-center relative mx-auto border-b border-gray-200 pb-10">
         <div className="container mx-auto relative z-10 text-center">
-          <h2 className="text-4xl text-white mb-0">Features</h2>
-          <div className="flex flex-wrap mt-8">
+          <div className="flex flex-wrap mt-2">
             {/* Feature 1 */}
             <div className="w-full md:w-1/2 lg:w-1/3 p-4">
               <div className="bg-white p-8 rounded shadow-sm shadow-white">
@@ -51,7 +50,7 @@ const LandingPage = () => {
             </div>
             {/* Repeat for more features */}
             <div className="w-full md:w-1/2 lg:w-1/3 p-4">
-              <div className="bg-white p-8 rounded shadow-sm shadow-white">
+              <div className="bg-white p-8 rounded shadow-white shadow-sm">
                 <h3 className="text-xl text-black">Create a Startup</h3>
               </div>
             </div>
@@ -108,21 +107,6 @@ const LandingPage = () => {
           </p>
         </div>
       </section>
-      <section className="pt-10 bg-cover bg-center relative mx-auto">
-        <div className="container mx-auto relative z-10 text-center">
-          <h2 className="text-3xl font-semibold text-white">Get Notified</h2>
-          <p className="mt-4 text-gray-300">
-            Want to get an email when you get a match?
-          </p>
-          <Link
-            href="/"
-            className="mt-6 inline-block bg-white text-black rounded-full py-3 px-8 hover:opacity-60"
-          >
-            Coming Soon!
-          </Link>
-        </div>
-      </section>
-
       {/* Footer */}
       <Footer />
     </>

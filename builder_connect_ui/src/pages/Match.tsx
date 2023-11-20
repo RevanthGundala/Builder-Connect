@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import ParticleBackground from "@/components/ParticleBackground";
 import { NextRouter, useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
@@ -30,10 +31,10 @@ export default function Matches() {
 
   return (
     <>
+      <ParticleBackground />
       <Navbar />
-
-      <div className="bg-gray-100 p-4 min-h-screen">
-        <h1 className="text-2xl text-black font-semibold mb-4">Your Matches</h1>
+      <div className="pt-16 bg-cover bg-center relative mx-auto">
+        <h1 className="text-2xl text-white font-semibold mb-4">Your Matches</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sub_id !== "" && matches.length > 0 ? (
             matches.map((match: any) => (
@@ -58,7 +59,7 @@ export default function Matches() {
           ) : sub_id !== "" && matches.length === 0 ? (
             <div className="bg-white rounded shadow-md p-4">
               <h2 className="text-xl font-semibold">
-                <p className="text-black">
+                <p className="text-white">
                   No matches yet. Swipe to find some!
                 </p>
               </h2>
