@@ -1,10 +1,11 @@
 import Navbar from "@/components/Navbar";
 import { NextRouter, useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import { useLocalStorage } from "usehooks-ts";
 
 export default function Matches() {
   const router = useRouter();
-  const [sub_id, set_sub_id] = useState("");
+  const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
   const [matches, set_matches] = useState<any>([]);
 
   useEffect(() => {

@@ -26,7 +26,6 @@ export default function Authenticate() {
       }
       const response = await fetch(url, { credentials: "include" });
       const login_url = await response.json();
-      console.log("login_url: ", login_url);
       login_url === "/" ? router.push("/") : router.push(login_url);
     } catch (e) {
       console.log(e);

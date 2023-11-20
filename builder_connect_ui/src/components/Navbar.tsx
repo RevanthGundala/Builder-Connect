@@ -34,50 +34,31 @@ export default function Navbar() {
     }
   }, [sub_id]);
 
-  console.log("sub_id: ", sub_id);
   return isClient ? (
-    <nav className="bg-blue-500 p-4 flex flex-row text-white">
-      <header className="flex flex-row gap-24">
+    <nav className="p-4 flex flex-row space-x-16 items-center text-white bg-cover bg-center relative justify-center">
+      <Link href="/">Home</Link>
+      {sub_id !== "" ? (
+        <>
+          <Link href={`/profile/View`}>Profile</Link>
+          <Link href={`/Match`}>Matches</Link>
+          <Link href={`/Swipe`}>Swipe</Link>
+        </>
+      ) : (
+        <>
+          <Link href={`/SignIn`}>Profile</Link>
+          <Link href={`/SignIn`}>Matches</Link>
+          <Link href={`/SignIn`}>Swipe</Link>
+        </>
+      )}
+      {sub_id === "" ? (
         <div className="p-2">
-          <Link href="/">Home</Link>
+          <Link href="/SignIn">Sign In</Link>
         </div>
-        {sub_id !== "" ? (
-          <>
-            <div className="p-2">
-              <Link href={`/profile/View`}>Profile</Link>
-            </div>
-            <div className="p-2">
-              <Link href={`/Match`}>Matches</Link>
-            </div>
-            <div className="p-2">
-              <Link href={`/Swipe`}>Swipe</Link>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="p-2">
-              <Link href={`/SignIn`}>Profile</Link>
-            </div>
-            <div className="p-2">
-              <Link href={`/SignIn`}>Matches</Link>
-            </div>
-            <div className="p-2">
-              <Link href={`/SignIn`}>Swipe</Link>
-            </div>
-          </>
-        )}
-      </header>
-      <header className="ml-auto">
-        {sub_id === "" ? (
-          <div className="p-2">
-            <Link href="/SignIn">Sign In</Link>
-          </div>
-        ) : (
-          <div className="p-2">
-            <button onClick={logout}>Sign Out</button>
-          </div>
-        )}
-      </header>
+      ) : (
+        <div className="p-2">
+          <button onClick={logout}>Sign Out</button>
+        </div>
+      )}
     </nav>
   ) : (
     <div>Loading</div>
