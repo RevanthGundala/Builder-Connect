@@ -35,7 +35,7 @@ export default function Matches() {
       <Navbar />
       <div className="pt-16 bg-cover bg-center relative mx-auto">
         <h1 className="text-2xl text-white font-semibold mb-4">Your Matches</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 md:grid-cols-7 lg:grid-cols-9 gap-4">
           {sub_id !== "" && matches.length > 0 ? (
             matches.map((match: any) => (
               <div
