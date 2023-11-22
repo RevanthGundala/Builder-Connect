@@ -9,7 +9,7 @@ use std::env;
 extern crate dotenv;
 use dotenv::dotenv;
 use reqwest::{Response, header::HeaderValue};
-use mongodb::{bson::{self, doc}};
+use mongodb::bson::{self, doc};
 
 #[put("/swipe_left/{sub_id}/{other_sub_id}")]
 pub async fn swipe_left(db: Data<MongoRepo>, path: Path<(String, String)>) -> HttpResponse {

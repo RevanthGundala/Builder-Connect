@@ -1,4 +1,4 @@
-use crate::{models::user_model::{User, VectorEmbedding}, repository::mongodb_repo::MongoRepo};
+use crate::{models::user_model::User, repository::mongodb_repo::MongoRepo};
 use actix_web::{
     post,
     get,
@@ -7,10 +7,9 @@ use actix_web::{
     web::{Data, Json, Path},
     HttpResponse
 };
-use reqwest::Client;
 use super::user_actions::generate_embedding;
 use crate::models::user_model::UserView;
-use mongodb::{bson::oid::ObjectId, results::InsertOneResult};
+use mongodb::bson::oid::ObjectId;
 
 // test
 #[post("/create")]

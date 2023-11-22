@@ -1,15 +1,15 @@
 mod api;
 mod models;
 mod repository;
-use crate::api::user_actions::*;
+mod socket;
 use serde::{Deserialize, Serialize};
 use actix_web::cookie::{ SameSite };
 use actix_session::{ SessionMiddleware, Session };
 use actix_session::config::{ BrowserSession, CookieContentSecurity };
 use actix_session::storage::{ RedisActorSessionStore };
-//modify imports below
 use actix_web::{web::Data, App, HttpServer, http, cookie::Key};
-use api::{user_api::*, auth::*};
+use api::{user_api::*, auth::*, user_actions::*};
+use socket::{ws::WsConn, lobby::Lobby, start_connection::start_connection as start_connection_route};
 use repository::mongodb_repo::MongoRepo;
 use oauth2::{basic::BasicClient,
     AuthUrl,
@@ -19,7 +19,7 @@ use oauth2::{basic::BasicClient,
     TokenUrl,
 };
 use actix_cors::Cors;
-
+use actix::Actor;
 pub struct GoogleOAuthClient {
     client: BasicClient,
 }
@@ -84,7 +84,9 @@ async fn main() -> std::io::Result<()> {
         google_client_data,
         discord_client_data,
     } = get_client_data();
-    let signing_key = Key::generate();  
+    let signing_key = Key::generate(); 
+    let chat_server =  Lobby::default().start();
+    let chat_server_data = Data::new(chat_server);
     HttpServer::new(move || {
         // let cors = Cors::default()
         //     .allowed_origin("http://localhost:3000")
@@ -98,6 +100,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(db_data.clone())
             .app_data(google_client_data.clone())
             .app_data(discord_client_data.clone())
+            .app_data(chat_server_data.clone())
             .wrap(cors)
             .wrap(
                 SessionMiddleware::builder(
@@ -123,7 +126,8 @@ async fn main() -> std::io::Result<()> {
             .service(login_callback_discord)
             .service(logout)
             .service(get_session)
-            .service(create_many_users)
+            .service(create_many_users) //TODO: delete when done testing
+            .service(start_connection_route)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

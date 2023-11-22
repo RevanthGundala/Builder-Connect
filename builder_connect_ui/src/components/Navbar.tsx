@@ -40,7 +40,7 @@ export default function Navbar() {
       {sub_id !== "" ? (
         <>
           <Link href={`/profile/View`}>Profile</Link>
-          <Link href={`/Match`}>Matches</Link>
+          <Link href={`/match/${sub_id}`}>Matches</Link>
           <Link href={`/Swipe`}>Swipe</Link>
         </>
       ) : (

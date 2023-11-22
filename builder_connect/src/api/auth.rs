@@ -1,4 +1,3 @@
-use mongodb::Client;
 use oauth2::{
     AuthorizationCode,
     CsrfToken,
@@ -15,7 +14,7 @@ extern crate dotenv;
 use dotenv::dotenv;
 use crate::{GoogleOAuthClient, DiscordOAuthClient, ClientType};
 use reqwest;
-use crate::{repository::mongodb_repo::MongoRepo};
+use crate::repository::mongodb_repo::MongoRepo;
 
 #[derive(Debug, Deserialize)]
 pub struct OAuthRequest {
@@ -108,7 +107,7 @@ pub async fn login(
                 return HttpResponse::Ok().json("/");
             }
             else{
-                let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
+                // let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
                 match client_type.into_inner() {
                     ClientType::Google => {
                         let client = google_data.client.clone();
