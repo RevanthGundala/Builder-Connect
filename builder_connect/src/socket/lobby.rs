@@ -3,12 +3,10 @@ use actix::prelude::{Actor, Context, Handler, Recipient};
 use std::collections::{HashMap, HashSet};
 use uuid::Uuid;
 
-type Socket = Recipient<WsMessage>;
-
 // TODO: Insert Lobby into MongoDb
 pub struct Lobby {
-    sessions: HashMap<Uuid, Socket>,          //self id to self
-    rooms: HashMap<Uuid, HashSet<Uuid>>,      //room id  to list of users id
+    sessions: HashMap<Uuid, Recipient<WsMessage>>,          //self id to self -> Delete (its just specifying the user id of the recipient)
+    rooms: HashMap<Uuid, HashSet<Uuid>>,      //room id  to list of users id --> Change to room array of object ids in mongodb. i.e. every user has an array [] of rooms they are in
 }
 
 impl Default for Lobby {
