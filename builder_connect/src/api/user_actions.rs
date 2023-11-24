@@ -132,7 +132,7 @@ pub async fn recommend_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResp
         if embeddings.len() == 0 {
             return HttpResponse::Ok().body("No embeddings found");
         } 
-        let mut recommendations = db.col.aggregate(
+        let mut recommendations = db.users.aggregate(
             vec![
                 doc! {
                     "$vectorSearch": {

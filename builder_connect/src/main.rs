@@ -1,7 +1,7 @@
 mod api;
 mod models;
 mod repository;
-mod socket;
+mod chat;
 use serde::{Deserialize, Serialize};
 use actix_web::cookie::{ SameSite };
 use actix_session::{ SessionMiddleware, Session };
@@ -9,7 +9,7 @@ use actix_session::config::{ BrowserSession, CookieContentSecurity };
 use actix_session::storage::{ RedisActorSessionStore };
 use actix_web::{web::Data, App, HttpServer, http, cookie::Key};
 use api::{user_api::*, auth::*, user_actions::*};
-use socket::{ws::WsConn, lobby::Lobby, start_connection::start_connection as start_connection_route};
+use chat::socket::ChatServer;
 use repository::mongodb_repo::MongoRepo;
 use oauth2::{basic::BasicClient,
     AuthUrl,
@@ -85,7 +85,7 @@ async fn main() -> std::io::Result<()> {
         discord_client_data,
     } = get_client_data();
     let signing_key = Key::generate(); 
-    let chat_server =  Lobby::default().start();
+    let chat_server =  ChatServer::new().start();
     let chat_server_data = Data::new(chat_server);
     HttpServer::new(move || {
         // let cors = Cors::default()
@@ -127,7 +127,6 @@ async fn main() -> std::io::Result<()> {
             .service(logout)
             .service(get_session)
             .service(create_many_users) //TODO: delete when done testing
-            .service(start_connection_route)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

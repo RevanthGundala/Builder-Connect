@@ -129,7 +129,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
     let mut res;
     for user in users {
         res = db
-            .col
+            .users
             .insert_one(user.clone(), None)
             .await
             .ok()

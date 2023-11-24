@@ -7,12 +7,16 @@ use mongodb::{
     Client, Collection,
 };
 use crate::models::user_model::User;
+use crate::models::room_model::Room;
+use crate::models::message_model::Message;
 use mongodb::results::{UpdateResult, DeleteResult};
 use mongodb::IndexModel;
 use mongodb::bson::extjson::de::Error::DeserializationError;
 
 pub struct MongoRepo {
-    pub col: Collection<User>,
+    pub users: Collection<User>,
+    pub rooms: Collection<Room>,
+    pub messages: Collection<Message>,
 }
 
 impl MongoRepo {
@@ -24,20 +28,23 @@ impl MongoRepo {
         };
         let client = Client::with_uri_str(uri).await.unwrap();
         let db = client.database("BuilderConnectDB");
-        let col: Collection<User> = db.collection("Users");
+        let users: Collection<User> = db.collection("Users");
+        let rooms: Collection<Room> = db.collection("Rooms");
+        let messages: Collection<Message> = db.collection("Messages");
         let index_model = IndexModel::builder()
             .keys(doc! {"sub_id": 1})
             .options(None)
             .build();
-        let res = col.create_index(index_model, None).await.unwrap();
+        let res = users.create_index(index_model, None).await.unwrap();
         if res.index_name != "sub_id_1" {
             panic!("PANIC!! Error creating index");
         }
-        MongoRepo { col }
+        MongoRepo { users, rooms, messages }
     }
 
     pub async fn create_user(
-        &self, sub_id: String, 
+        &self, 
+        sub_id: String, 
         username: String, 
         email: String, 
         discord: String, 
@@ -51,7 +58,7 @@ impl MongoRepo {
             ..new_user
         };
         let res = self
-            .col
+            .users
             .insert_one(new_user, None)
             .await
             .ok()
@@ -62,7 +69,7 @@ impl MongoRepo {
     pub async fn get_user(&self, sub_id: &String) -> Result<User, Error> {
         let filter = doc! {"sub_id": sub_id};
         let user_detail = self
-            .col
+            .users
             .find_one(filter, None)
             .await;
         match user_detail {
@@ -78,7 +85,7 @@ impl MongoRepo {
 
     pub async fn get_all_users(&self) -> Result<Vec<User>, Error> {
         let mut cursor = self
-            .col
+            .users
             .find(None, None)
             .await
             .ok()
@@ -118,7 +125,7 @@ impl MongoRepo {
                 },
         };
         let updated_doc = self
-            .col
+            .users
             .update_one(filter, new_doc, None)
             .await
             .ok()
@@ -129,11 +136,26 @@ impl MongoRepo {
     pub async fn delete_user(&self, sub_id: &String) -> Result<DeleteResult, Error> {
         let filter = doc! {"sub_id": sub_id};
         let user_detail = self
-            .col
+            .users
             .delete_one(filter, None)
             .await
             .ok()
             .expect("Error deleting user");
         Ok(user_detail)
     }
+
+    // ------------------- Messages ------------------- //
+
+    pub async fn create_message(&self, message: Message) -> Result<InsertOneResult, Error> {
+        let res = self
+            .messages
+            .insert_one(message, None)
+            .await
+            .ok()
+            .expect("Error creating message");
+        Ok(res)
+    } 
+
+    // ------------------- Rooms ------------------- //
+    
 }
