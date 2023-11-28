@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { useLocalStorage } from "usehooks-ts";
 import ParticleBackground from "@/components/ParticleBackground";
-import { view_profile } from "@/calls/functions";
+import { view_profile } from "@/libs/functions";
 import Profile from "@/components/Profile";
 
 export default function View() {

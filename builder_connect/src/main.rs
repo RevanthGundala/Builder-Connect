@@ -7,8 +7,9 @@ use actix_web::cookie::{ SameSite };
 use actix_session::{ SessionMiddleware, Session };
 use actix_session::config::{ BrowserSession, CookieContentSecurity };
 use actix_session::storage::{ RedisActorSessionStore };
-use actix_web::{web::Data, App, HttpServer, http, cookie::Key};
-use api::{user_api::*, auth::*, user_actions::*};
+use actix_web::{web::{self, Data}, App, HttpServer, http, cookie::Key};
+use api::{user_api::*, auth::*, user_actions::*, chat_api::{*, self}};
+use crate::api::chat_api::get_conversation_by_id;
 use chat::socket::ChatServer;
 use repository::mongodb_repo::MongoRepo;
 use oauth2::{basic::BasicClient,
@@ -127,6 +128,10 @@ async fn main() -> std::io::Result<()> {
             .service(logout)
             .service(get_session)
             .service(create_many_users) //TODO: delete when done testing
+            .service(delete_all)
+            .service(get_conversation_by_id)
+            .service(start_chat_server)
+
     })
     .bind(("127.0.0.1", 8080))?
     .run()

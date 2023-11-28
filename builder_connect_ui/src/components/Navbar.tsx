@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 import { useLocalStorage } from "usehooks-ts";
-import { check_session } from "@/calls/functions";
+import { check_session } from "@/libs/functions";
 
 export default function Navbar() {
   const router = useRouter();

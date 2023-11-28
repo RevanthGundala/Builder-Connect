@@ -156,6 +156,35 @@ impl MongoRepo {
         Ok(res)
     } 
 
+    pub async fn get_messages_by_room_id(&self, room_id: &String) -> Result<Vec<Message>, Error> {
+        let filter = doc! {"room_id": room_id};
+        let mut cursor = self
+            .messages
+            .find(filter, None)
+            .await
+            .ok()
+            .expect("Error getting all messages");
+        let mut messages = vec![];
+        while cursor.advance().await.expect("Error getting all messages") {
+            messages.push(cursor.deserialize_current().expect("Deserialization error"));
+        }
+        Ok(messages)
+    }
+
     // ------------------- Rooms ------------------- //
-    
+
+    pub async fn get_all_rooms(&self) -> Result<Vec<Room>, Error> {
+        let mut cursor = self
+            .rooms
+            .find(None, None)
+            .await
+            .ok()
+            .expect("Error getting all rooms");
+        let mut rooms = vec![];
+        while cursor.advance().await.expect("Error getting all rooms") {
+            rooms.push(cursor.deserialize_current().expect("Deserialization error"));
+        }
+        Ok(rooms)
+    }
+
 }

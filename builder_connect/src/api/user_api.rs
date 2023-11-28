@@ -9,7 +9,7 @@ use actix_web::{
 };
 use super::user_actions::generate_embedding;
 use crate::models::user_model::UserView;
-use mongodb::bson::oid::ObjectId;
+use mongodb::bson::{doc, oid::ObjectId};
 
 // test
 #[post("/create")]
@@ -143,6 +143,17 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             .expect("Error updating user");
     }
     return HttpResponse::Ok().json("Users successfully created!");
+}
+
+#[delete("/delete")]
+pub async fn delete_all(db: Data<MongoRepo>) -> HttpResponse{
+        let user_detail = db
+            .users
+            .delete_many(doc!{}, None)
+            .await
+            .ok()
+            .expect("Error deleting user");
+    HttpResponse::Ok().json("Users successfully deleted!")
 }
 
 #[get("/view/{sub_id}")]

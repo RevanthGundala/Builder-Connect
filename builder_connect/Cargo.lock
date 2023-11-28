@@ -748,6 +748,7 @@ dependencies = [
  "actix-session",
  "actix-web",
  "actix-web-actors",
+ "async-trait",
  "chrono",
  "dotenv",
  "futures",

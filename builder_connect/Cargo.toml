@@ -18,6 +18,7 @@ chrono = { version = "0.4.23", features = ["serde"] }
 oauth2 = "4.4.2"
 uuid = { version = "0.8", features = ["v4", "serde"] }
 rand = "0.8.4"
+async-trait = "0.1.74"
 
 
 [dependencies.mongodb]

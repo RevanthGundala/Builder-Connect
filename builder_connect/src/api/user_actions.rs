@@ -9,7 +9,7 @@ use std::env;
 extern crate dotenv;
 use dotenv::dotenv;
 use reqwest::{Response, header::HeaderValue};
-use mongodb::bson::{self, doc};
+use mongodb::bson::{self, doc, Uuid};
 
 #[put("/swipe_left/{sub_id}/{other_sub_id}")]
 pub async fn swipe_left(db: Data<MongoRepo>, path: Path<(String, String)>) -> HttpResponse {
@@ -70,6 +70,15 @@ pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> H
             matches: Some(other_user_matches),
             ..other_user
         };
+        let uuid = Uuid::new();
+        let res = reqwest::Client::new()
+            .post(format!("http://localhost:8080/chat/{uuid}"))
+            .send()
+            .await;
+        match res {
+            Ok(_) => (),
+            Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+        }
     }
 
     let user_res = db.update_user(&user_id, updated_user.clone()).await;

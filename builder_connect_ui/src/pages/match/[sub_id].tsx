@@ -2,7 +2,7 @@ import ParticleBackground from "@/components/ParticleBackground";
 import React, { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import { view_profile } from "@/calls/functions";
+import { view_profile } from "@/libs/functions";
 import { useLocalStorage } from "usehooks-ts";
 import { useRouter } from "next/router";
 import Profile from "@/components/Profile";
@@ -11,17 +11,17 @@ import Link from "next/link";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 
 export default function Messages() {
-  const [profile, set_profile] = useState<any>(undefined);
+  const [profile, set_profile] = useState<any>(null);
   const [matches, set_matches] = useState<any[]>([]);
   const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
   const [match_sub_id, set_match_sub_id] = useState("");
-  const [match_profile, set_match_profile] = useState<any>(undefined);
+  const [match_profile, set_match_profile] = useState<any>(null);
   const router = useRouter();
 
   async function get_profile(id = sub_id) {
     const profile_data = await view_profile(id, profile);
     id === sub_id ? set_profile(profile_data) : set_match_profile(profile_data);
-    if (id === sub_id) {
+    if (id === sub_id && profile_data?.matches.length > 0) {
       let matches = await Promise.all(
         profile_data?.matches.map(async (match_id: number) => {
           const url = process.env.NEXT_PUBLIC_BASE_URL + `/view/${match_id}`;
@@ -36,7 +36,7 @@ export default function Messages() {
 
   useEffect(() => {
     get_profile();
-    if (sub_id !== router.query.sub_id) router.push("/Error");
+    // if (sub_id !== router.query.sub_id) router.push("/Error");
   }, []);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function Messages() {
             />
           </div>
           <div className="md:col-span-7 lg:col-span-5 border-r border-gray-300">
-            <MessageComponent profile={match_profile} />
+            <MessageComponent profile={match_profile} sub_id={sub_id} />
           </div>
           <div className="pt-8 mx-auto hidden lg:col-span-2 lg:inline">
             <Profile profile={match_profile} />
