@@ -7,7 +7,6 @@ use mongodb::{
     Client, Collection,
 };
 use crate::models::user_model::User;
-use crate::models::room_model::Room;
 use crate::models::message_model::Message;
 use mongodb::results::{UpdateResult, DeleteResult};
 use mongodb::IndexModel;
@@ -15,7 +14,6 @@ use mongodb::bson::extjson::de::Error::DeserializationError;
 
 pub struct MongoRepo {
     pub users: Collection<User>,
-    pub rooms: Collection<Room>,
     pub messages: Collection<Message>,
 }
 
@@ -29,7 +27,6 @@ impl MongoRepo {
         let client = Client::with_uri_str(uri).await.unwrap();
         let db = client.database("BuilderConnectDB");
         let users: Collection<User> = db.collection("Users");
-        let rooms: Collection<Room> = db.collection("Rooms");
         let messages: Collection<Message> = db.collection("Messages");
         let index_model = IndexModel::builder()
             .keys(doc! {"sub_id": 1})
@@ -39,7 +36,7 @@ impl MongoRepo {
         if res.index_name != "sub_id_1" {
             panic!("PANIC!! Error creating index");
         }
-        MongoRepo { users, rooms, messages }
+        MongoRepo { users, messages }
     }
 
     pub async fn create_user(
@@ -119,7 +116,8 @@ impl MongoRepo {
                     "skills": new_user.skills,
                     "right_swipes": new_user.right_swipes,
                     "left_swipes": new_user.left_swipes,
-                    "matches": new_user.matches,
+                    "matches": bson::to_bson(&new_user.matches).unwrap(),
+                    "cannot_match": bson::to_bson(&new_user.cannot_match).unwrap(),
                     "public_fields": bson::to_bson(&new_user.public_fields).unwrap(),
                     "vector_embeddings": bson::to_bson(&new_user.vector_embeddings).unwrap()
                 },
@@ -170,21 +168,4 @@ impl MongoRepo {
         }
         Ok(messages)
     }
-
-    // ------------------- Rooms ------------------- //
-
-    pub async fn get_all_rooms(&self) -> Result<Vec<Room>, Error> {
-        let mut cursor = self
-            .rooms
-            .find(None, None)
-            .await
-            .ok()
-            .expect("Error getting all rooms");
-        let mut rooms = vec![];
-        while cursor.advance().await.expect("Error getting all rooms") {
-            rooms.push(cursor.deserialize_current().expect("Deserialization error"));
-        }
-        Ok(rooms)
-    }
-
 }

@@ -1,4 +1,4 @@
-use mongodb::bson::oid::ObjectId;
+use mongodb::bson::{oid::ObjectId, Uuid};
 use serde::{Serialize, Deserialize};
 use mongodb::bson::doc;
 use chrono::{DateTime, Utc};
@@ -70,6 +70,21 @@ pub struct VectorEmbedding{
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Room {
+    pub room_id: Uuid,
+    pub user_sub_ids: Vec<String>, // will generally be 1 user (match)
+}
+
+impl Room {
+    pub fn new(room_id: Uuid, user_match_sub_id: String) -> Self {
+        Room {
+            room_id,
+            user_sub_ids: vec![user_match_sub_id],
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
@@ -89,7 +104,8 @@ pub struct User {
     pub skills: Option<String>, // what tech stack they want to work on (web dev, ML, etc)
     pub right_swipes: Option<Vec<String>>, // list of user's ids who this user has swiped right on
     pub left_swipes: Option<Vec<String>>, // list of user's ids who this user has swiped left on
-    pub matches: Option<Vec<String>>, // list of user
+    pub matches: Option<Vec<Room>>, // list of user
+    pub cannot_match: Option<Vec<String>>, // list of user's ids who this user cannot match with
     pub public_fields: Option<UserView>, // list of fields that are public
     pub vector_embeddings: Option<Vec<f32>>,
 }
@@ -98,7 +114,7 @@ impl User {
     pub fn new(sub_id: String) -> Self {
         User {
             id: Some(ObjectId::new()),
-            sub_id: Some(sub_id),
+            sub_id: Some(sub_id.clone()),
             image_url: "".to_string(),
             username: "".to_string(),
             email: "".to_string(),
@@ -115,6 +131,7 @@ impl User {
             right_swipes: Some(vec![]),
             left_swipes: Some(vec![]),
             matches: Some(vec![]),
+            cannot_match: Some(vec![sub_id]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
         }

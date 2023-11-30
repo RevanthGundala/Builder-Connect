@@ -11,43 +11,16 @@ import Link from "next/link";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 
 export default function Messages() {
-  const [profile, set_profile] = useState<any>(null);
-  const [matches, set_matches] = useState<any[]>([]);
   const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
-  const [match_sub_id, set_match_sub_id] = useState("");
+  const [profile, set_profile] = useState(null);
   const [match_profile, set_match_profile] = useState<any>(null);
-  const router = useRouter();
-
-  async function get_profile(id = sub_id) {
-    const profile_data = await view_profile(id, profile);
-    id === sub_id ? set_profile(profile_data) : set_match_profile(profile_data);
-    if (id === sub_id && profile_data?.matches.length > 0) {
-      let matches = await Promise.all(
-        profile_data?.matches.map(async (match_id: number) => {
-          const url = process.env.NEXT_PUBLIC_BASE_URL + `/view/${match_id}`;
-          const res = await fetch(url);
-          const match = await res.json();
-          return match;
-        })
-      );
-      set_matches(matches);
-    }
-  }
-
-  useEffect(() => {
-    get_profile();
-    // if (sub_id !== router.query.sub_id) router.push("/Error");
-  }, []);
-
-  useEffect(() => {
-    get_profile(match_sub_id);
-  }, [match_sub_id]);
+  const [match_room_id, set_match_room_id] = useState<any>(null);
 
   return (
     <>
       <ParticleBackground />
       <div className="bg-cover bg-center relative text-white">
-        <div className="grid grid-cols-9 min-h-screen overflow-auto">
+        <div className="grid grid-cols-9 min-h-screen overflow-hidden">
           <div className="col-span-2 border-r border-gray-300">
             <div className="py-2 px-1">
               <Link href="/">
@@ -55,16 +28,29 @@ export default function Messages() {
               </Link>
             </div>
             <Sidebar
-              matches={matches}
-              sub_id={match_sub_id}
-              set_sub_id={set_match_sub_id}
+              sub_id={sub_id}
+              profile={profile}
+              set_profile={set_profile}
+              set_match_profile={set_match_profile}
+              set_match_room_id={set_match_room_id}
             />
           </div>
           <div className="md:col-span-7 lg:col-span-5 border-r border-gray-300">
-            <MessageComponent profile={match_profile} sub_id={sub_id} />
+            {match_profile ? (
+              <MessageComponent
+                profile={profile}
+                match_profile={match_profile}
+                sub_id={sub_id}
+                room_id={match_room_id}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full">
+                <p className="text-2xl">Click on a conversation to begin!</p>
+              </div>
+            )}
           </div>
           <div className="pt-8 mx-auto hidden lg:col-span-2 lg:inline">
-            <Profile profile={match_profile} />
+            <Profile profile={match_profile ? match_profile : profile} />
           </div>
         </div>
       </div>

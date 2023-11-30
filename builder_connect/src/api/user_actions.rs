@@ -1,4 +1,4 @@
-use crate::{models::user_model::User, repository::mongodb_repo::MongoRepo};
+use crate::{models::user_model::{User, Room}, repository::mongodb_repo::MongoRepo};
 use actix_web::{
     web::{Data, Path},
     put,
@@ -22,9 +22,14 @@ pub async fn swipe_left(db: Data<MongoRepo>, path: Path<(String, String)>) -> Ht
         .expect("DB error");
 
     let mut left_swipes = user.clone().left_swipes.unwrap();
-    left_swipes.push(other_user_id);
+    left_swipes.push(other_user_id.clone());
+
+    let mut cannot_match = user.clone().cannot_match.unwrap();
+    cannot_match.push(other_user_id);
+
     let updated_user = User{
         left_swipes: Some(left_swipes),
+        cannot_match: Some(cannot_match),
         ..user
     };
 
@@ -37,7 +42,6 @@ pub async fn swipe_left(db: Data<MongoRepo>, path: Path<(String, String)>) -> Ht
 
 #[put("/swipe_right/{sub_id}/{other_sub_id}")]
 pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> HttpResponse {
-    println!("Swipe right");
     let (user_id, other_user_id) = path.into_inner();
     if user_id.is_empty() || other_user_id.is_empty() || user_id == other_user_id {
         return HttpResponse::BadRequest().body("invalid ID");
@@ -52,38 +56,44 @@ pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> H
     
     let mut user_right_swipes = user.right_swipes.unwrap();
     user_right_swipes.push(other_user_id.clone());
+
+    let mut cannot_match = user.cannot_match.unwrap();
+    cannot_match.push(other_user_id.clone());
+    
     let mut updated_user = User{
         right_swipes: Some(user_right_swipes),
+        cannot_match: Some(cannot_match),
         ..user
     };
-    println!("Before match exists");
     if match_exists(&other_user, &user_id) {
-        let mut user_matches = updated_user.matches.unwrap();
-        user_matches.push(other_user_id.clone());
-        let mut other_user_matches = other_user.matches.unwrap();
-        other_user_matches.push(user_id.clone());
-        updated_user = User{
-            matches: Some(user_matches),
-            ..updated_user
-        };
-        other_user = User{
-            matches: Some(other_user_matches),
-            ..other_user
-        };
         let uuid = Uuid::new();
         let res = reqwest::Client::new()
-            .post(format!("http://localhost:8080/chat/{uuid}"))
+            .get(format!("http://localhost:8080/chat/{uuid}"))
             .send()
             .await;
         match res {
-            Ok(_) => (),
+            Ok(_) => {
+                let mut user_matches = updated_user.matches.unwrap();
+                user_matches.push(Room::new(uuid, other_user_id.clone()));
+        
+                let mut other_user_matches = other_user.matches.unwrap();
+                other_user_matches.push(Room::new(uuid, user_id.clone()));
+                
+                updated_user = User{
+                    matches: Some(user_matches),
+                    ..updated_user
+                };
+                other_user = User{
+                    matches: Some(other_user_matches),
+                    ..other_user
+                };
+            },
             Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
         }
     }
 
     let user_res = db.update_user(&user_id, updated_user.clone()).await;
     let other_user_res = db.update_user(&other_user_id, other_user.clone()).await;
-    println!("Before match");
     match (user_res, other_user_res) {
         (Ok(_), Ok(_)) => HttpResponse::Ok().json("Swipe Right Success"),
         (Err(_), Err(_)) => HttpResponse::InternalServerError().body("DB error"),
@@ -111,20 +121,6 @@ pub async fn view_matches(db: Data<MongoRepo>, path: Path<String>) -> HttpRespon
     }
 }
 
-// TODO: Store this in DB as separate field so we dont have to recalculate
-fn get_users_that_cannot_match(user: User) -> Vec<String> {
-    let mut users_cannot_match = vec![vec![user.sub_id.clone().unwrap()]];
-    if let Some(left_swipes) = user.left_swipes {
-        users_cannot_match.push(left_swipes.to_owned());
-    }
-    if let Some(right_swipes) = user.right_swipes {
-        users_cannot_match.push(right_swipes.to_owned());
-    }
-    if let Some(matches) = user.matches {
-        users_cannot_match.push(matches.to_owned());
-    }
-    users_cannot_match.into_iter().flatten().collect()
-}
 
 #[get("/recommend/{sub_id}")]
 pub async fn recommend_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
@@ -136,7 +132,7 @@ pub async fn recommend_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResp
 
     // get the the top 5 users with the highest cosine similarity
     // ensure they are not already matched + swiped on
-    let users_cannot_match = get_users_that_cannot_match(user.clone());
+    let users_cannot_match = user.cannot_match.unwrap();
     if let Some(embeddings) = &user.vector_embeddings {
         if embeddings.len() == 0 {
             return HttpResponse::Ok().body("No embeddings found");

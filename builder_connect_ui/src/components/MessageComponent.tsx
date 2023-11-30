@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PhotoIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import Room from "@/components/Conversation";
 import Conversation from "@/components/Conversation";
@@ -7,13 +7,16 @@ import useWebsocket from "@/libs/useWebsocket";
 
 export default function MessageComponent({
   profile,
+  match_profile,
   sub_id,
+  room_id,
 }: {
   profile: any;
+  match_profile: any;
   sub_id: string;
+  room_id: any;
 }) {
   const [text, set_text] = useState("");
-  const [room, set_room] = useState<any>(null);
   const [is_typing, set_is_typing] = useState(false);
   const [is_loading, messages, set_messages, fetch_conversations] =
     useConversations("");
@@ -25,6 +28,7 @@ export default function MessageComponent({
   function handle_message(msg: string, user_sub_id: string) {
     set_messages((prevMessages: any) => {
       const item = { content: msg, user_sub_id: user_sub_id };
+      set_text("");
       return [...prevMessages, item];
     });
   }
@@ -32,6 +36,7 @@ export default function MessageComponent({
   function on_message(data: any) {
     try {
       let message_data = JSON.parse(data);
+      //   console.log("messgdata: ", message_data);
       if (message_data?.chat_type == "TYPING") {
         handle_typing(message_data?.value[0]);
       } else if (message_data?.chat_type == "TEXT") {
@@ -42,43 +47,50 @@ export default function MessageComponent({
     }
   }
 
-  const send_message = useWebsocket(on_message);
+  const send_message = useWebsocket(on_message, room_id);
 
   function submit_message(e: any) {
     e.preventDefault();
-    if (!room) {
+    if (!room_id) {
       alert("Please select room");
     } else {
       const data = {
-        id: 0,
+        room_id: room_id,
+        user_id: sub_id,
         chat_type: "TEXT",
-        value: [text],
-        room_id: room.id,
-        user_sub_id: sub_id,
+        content: text,
       };
       send_message(JSON.stringify(data));
       handle_message(text, sub_id);
     }
   }
 
+  useEffect(() => {
+    fetch_conversations(room_id);
+  }, [room_id]);
+
   return (
     <>
-      <div className="flex flex-col bg-gray-200 h-5/6 w-5/6 mx-auto my-8">
+      <div className="flex flex-col bg-gray-200 h-5/6 max-h-full w-5/6 mx-auto my-8">
         <header className="bg-gray-300 border-b border-gray-400 py-6 px-2">
-          <div className="flex flex-row">
+          <div className="flex flex-col space-y-1 items-center">
             <img
-              src={profile?.image_url}
-              alt={profile?.username}
+              src={match_profile?.image_url}
+              alt={match_profile?.username}
               className="w-6 h-6 object-cover rounded-full"
             />
-            <div className="flex flex-col text-sm text-black">
-              <p>Conversation with {profile?.username}</p>
+            <div className="text-md text-black">
+              <p>{match_profile?.username}</p>
             </div>
           </div>
         </header>
-        <main className="flex flex-col flex-1 border-b border-gray-400">
-          Messages
-          <Conversation messages={messages} sub_id={sub_id} />
+        <main className="flex flex-col flex-1 border-b border-gray-400 overflow-auto">
+          <Conversation
+            messages={messages}
+            sub_id={sub_id}
+            profile={profile}
+            match_profile={match_profile}
+          />
         </main>
         <footer>
           <form

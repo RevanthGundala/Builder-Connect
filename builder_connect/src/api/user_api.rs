@@ -34,6 +34,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             right_swipes: Some(vec![]),
             left_swipes: Some(vec![]),
             matches: Some(vec![]),
+            cannot_match: Some(vec![]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
         },
@@ -56,6 +57,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             right_swipes: Some(vec![]),
             left_swipes: Some(vec![]),
             matches: Some(vec![]),
+            cannot_match: Some(vec![]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
         },
@@ -78,6 +80,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             right_swipes: Some(vec![]),
             left_swipes: Some(vec![]),
             matches: Some(vec![]),
+            cannot_match: Some(vec![]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
         },
@@ -100,6 +103,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             right_swipes: Some(vec![]),
             left_swipes: Some(vec![]),
             matches: Some(vec![]),
+            cannot_match: Some(vec![]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
         },
@@ -122,6 +126,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             right_swipes: Some(vec![]),
             left_swipes: Some(vec![]),
             matches: Some(vec![]),
+            cannot_match: Some(vec![]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
         },
@@ -192,7 +197,10 @@ pub async fn edit_profile(
     let mut data;
     match update_embedding(new_user, clone2.vector_embeddings.unwrap()).await {
         Ok(embeddings) => {
-            data = set_fields(clone1, Some(embeddings), Some(sub_id.clone()));
+            data = set_fields(
+                clone1, 
+                Some(embeddings), 
+                Some(sub_id.clone()));
         }
         Err(_) => return HttpResponse::InternalServerError().body("Error generating embeddings"),
     }
@@ -263,6 +271,7 @@ fn set_fields(new_user: User, embeddings: Option<Vec<f32>>, sub_id: Option<Strin
         right_swipes: new_user.right_swipes.to_owned(),
         left_swipes: new_user.left_swipes.to_owned(),
         matches: new_user.matches.to_owned(),
+        cannot_match: new_user.cannot_match.to_owned(),
         public_fields: new_user.public_fields.to_owned(),
         vector_embeddings: embeddings,
     }
