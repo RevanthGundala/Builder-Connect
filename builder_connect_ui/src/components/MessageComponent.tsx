@@ -101,7 +101,7 @@ export default function MessageComponent({
               </div>
             </div>
           </header>
-          <main className="flex flex-col border-b border-gray-400 max-h-[600px] overflow-auto">
+          <main className="flex flex-col border-b border-gray-400 max-h-[600px] min-h-[600px] overflow-auto">
             <Conversation
               messages={match_messages}
               sub_id={sub_id}

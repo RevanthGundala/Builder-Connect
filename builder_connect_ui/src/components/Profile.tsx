@@ -10,7 +10,7 @@ export default function Profile({ profile }: { profile: any }) {
   const [image_error, set_image_error] = useState(false);
   return (
     <div className="w-fit h-fit bg-white rounded-lg shadow-md">
-      <div className="flex flex-row justify-center items-center pt-4">
+      <div className="flex flex-row justify-center items-center pt-4 px-4">
         <img
           src={image_error ? "/images/default_user.png" : profile?.image_url}
           onError={() => set_image_error(true)}
@@ -19,7 +19,7 @@ export default function Profile({ profile }: { profile: any }) {
         />
       </div>
       <div className="flex flex-col p-4 border-b border-gray-300">
-        <h2 className="text-2xl">
+        <h2 className="text-2xl text-black">
           {profile?.username}, {profile?.age}
         </h2>
         <div className="text-gray-600 text-sm space-y-1 pt-2">

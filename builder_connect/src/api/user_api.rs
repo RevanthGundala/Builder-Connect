@@ -150,8 +150,8 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
     return HttpResponse::Ok().json("Users successfully created!");
 }
 
-#[delete("/delete")]
-pub async fn delete_all(db: Data<MongoRepo>) -> HttpResponse{
+#[delete("/delete_users")]
+pub async fn delete_users(db: Data<MongoRepo>) -> HttpResponse{
         let user_detail = db
             .users
             .delete_many(doc!{}, None)
@@ -160,6 +160,18 @@ pub async fn delete_all(db: Data<MongoRepo>) -> HttpResponse{
             .expect("Error deleting user");
     HttpResponse::Ok().json("Users successfully deleted!")
 }
+
+#[delete("/delete_messages")]
+pub async fn delete_messages(db: Data<MongoRepo>) -> HttpResponse{
+        let user_detail = db
+            .messages
+            .delete_many(doc!{}, None)
+            .await
+            .ok()
+            .expect("Error deleting messages");
+    HttpResponse::Ok().json("Messages successfully deleted!")
+}
+
 
 #[get("/view/{sub_id}")]
 pub async fn view_profile(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {

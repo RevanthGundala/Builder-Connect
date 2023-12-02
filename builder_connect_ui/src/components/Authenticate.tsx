@@ -13,7 +13,6 @@ enum AuthProvider {
 
 export default function Authenticate() {
   const router = useRouter();
-  const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
 
   async function handle_auth(auth_provider: AuthProvider) {
     try {

@@ -167,7 +167,7 @@ pub async fn login_callback_discord(
                 let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
                 println!("{:?}", claims);
                 session.insert("sub_id", claims.id.clone()).unwrap();
-                let url = format!("http://localhost:3000");
+                let url = String::from("http://localhost:3000");
                 let response_body = serde_json::to_string(&serde_json::json!({
                     "sub_id": format!("{}", claims.id.clone())
                 })).expect("Failed to serialize JSON");
@@ -183,7 +183,7 @@ pub async fn login_callback_discord(
                                     Ok(user) => {
                                     
                                         HttpResponse::Found()
-                                            .header("Location", url)
+                                            .header("Location", format!("{url}/profile/Edit"))
                                             .body(response_body)
                                     },
                                     Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 

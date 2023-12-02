@@ -128,7 +128,8 @@ async fn main() -> std::io::Result<()> {
             .service(logout)
             .service(get_session)
             .service(create_many_users) //TODO: delete when done testing
-            .service(delete_all)
+            .service(delete_users)
+            .service(delete_messages)
             .service(get_conversation_by_id)
             .service(start_chat_server)
 
