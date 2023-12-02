@@ -10,19 +10,17 @@ export default function MessageComponent({
   match_profile,
   sub_id,
   room_id,
-  match_messages,
-  set_match_messages,
 }: {
   profile: any;
   match_profile: any;
   sub_id: string;
-  room_id: any;
-  match_messages: any[];
-  set_match_messages: React.Dispatch<React.SetStateAction<any[]>>;
+  room_id: string;
 }) {
   const [text, set_text] = useState("");
   const [is_typing, set_is_typing] = useState(false);
   const [image_error, set_image_error] = useState(false);
+  const [is_loading, messages, set_messages, fetch_conversations] =
+    useConversations(room_id);
 
   function handle_typing(mode: string) {
     mode === "IN" ? set_is_typing(true) : set_is_typing(false);
@@ -71,9 +69,13 @@ export default function MessageComponent({
         content: text,
       };
       send_message(JSON.stringify(data));
-      handle_message(text, sub_id);
+      set_text("");
     }
   }
+
+  useEffect(() => {
+    fetch_conversations(room_id);
+  }, [messages]);
 
   return (
     <>
@@ -98,7 +100,7 @@ export default function MessageComponent({
           </header>
           <main className="flex flex-col border-b border-gray-400 max-h-[600px] min-h-[600px] overflow-auto">
             <Conversation
-              messages={match_messages}
+              messages={messages}
               sub_id={sub_id}
               profile={profile}
               match_profile={match_profile}

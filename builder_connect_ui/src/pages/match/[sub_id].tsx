@@ -14,7 +14,6 @@ import useConversations from "@/libs/useConversation";
 export default function Messages() {
   const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
   const [profile, set_profile] = useState<any>(null);
-  const [match_messages, set_match_messages] = useState<any[]>([]);
   const [is_loading, messages, set_messages, fetch_conversations] =
     useConversations("");
   const [match_profile, set_match_profile] = useState<any>(null);
@@ -27,14 +26,10 @@ export default function Messages() {
       .flatMap((room: any) => room.room_id)
       .forEach((room_id: string) => {
         fetch_conversations(room_id); // sets messages variable
-
         map.set(room_id, messages);
-        if (match_room_id && match_room_id === room_id) {
-          set_match_messages(messages);
-        }
       });
     return map;
-  }, [profile, match_profile, messages]);
+  }, [profile, match_profile]);
 
   return (
     <>
@@ -63,8 +58,6 @@ export default function Messages() {
                 match_profile={match_profile}
                 sub_id={sub_id}
                 room_id={match_room_id}
-                match_messages={match_messages}
-                set_match_messages={set_match_messages}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full">

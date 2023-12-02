@@ -21,14 +21,20 @@ function ConversationItem({
         </div>
       </div>
     );
-  }
-  return (
-    <div className="flex gap-3 w-full">
-      <div className="flex flex-col space-y-1 max-w-fit bg-gray-600 p-3 text-sm rounded-xl rounded-bl-none">
-        <p className="text-white text-md">{content}</p>
+  } else {
+    return (
+      <div className="w-full flex justify-start">
+        <div className="flex flex-col space-y-1 items-start">
+          <p className="text-sm text-gray-600">{created_at}</p>
+          <div className="flex gap-3 justify-start">
+            <div className="max-w-fit bg-gray-600 p-3 text-sm rounded-xl rounded-bl-none">
+              <p className="text-white text-md">{content}</p>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 export default function Conversation({
   messages,
