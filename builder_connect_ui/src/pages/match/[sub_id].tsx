@@ -19,7 +19,6 @@ export default function Messages() {
     useConversations("");
   const [match_profile, set_match_profile] = useState<any>(null);
   const [match_room_id, set_match_room_id] = useState<string | null>(null);
-  const [re_render, setRe_render] = useState(false);
 
   const all_messages: Map<string, any[]> = useMemo(() => {
     const map = new Map();
@@ -35,7 +34,7 @@ export default function Messages() {
         }
       });
     return map;
-  }, [profile, match_profile, re_render]);
+  }, [profile, match_profile, messages]);
 
   return (
     <>
@@ -66,8 +65,6 @@ export default function Messages() {
                 room_id={match_room_id}
                 match_messages={match_messages}
                 set_match_messages={set_match_messages}
-                re_render={re_render}
-                setRe_render={setRe_render}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full">

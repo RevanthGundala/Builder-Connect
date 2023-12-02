@@ -163,7 +163,8 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                             let messages = db.get_messages_by_room_id(&room_id_clone)
                                 .await
                                 .unwrap();
-                            if let Some(last_msg) = messages.last() {
+                            let mut iter = messages.iter().rev(); // Reverse iterator
+                            while let Some(last_msg) = iter.next() {
                                 if let Some(last_msg_time) = last_msg.created_at {
                                     if last_msg_time < Utc::now() - chrono::Duration::minutes(5) {
                                         new_message = Message::new(
@@ -173,8 +174,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                             Some(Utc::now()),
                                         );
                                     }
+                                    break; // Exit the loop if a message with a valid created_at is found
                                 }
                             }
+
                             
                             let _ = db.create_message(new_message).await;
                         };

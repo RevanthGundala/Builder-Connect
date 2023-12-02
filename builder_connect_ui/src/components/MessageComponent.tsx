@@ -12,8 +12,6 @@ export default function MessageComponent({
   room_id,
   match_messages,
   set_match_messages,
-  re_render,
-  setRe_render,
 }: {
   profile: any;
   match_profile: any;
@@ -21,8 +19,6 @@ export default function MessageComponent({
   room_id: any;
   match_messages: any[];
   set_match_messages: React.Dispatch<React.SetStateAction<any[]>>;
-  re_render: boolean;
-  setRe_render: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [text, set_text] = useState("");
   const [is_typing, set_is_typing] = useState(false);
@@ -34,7 +30,6 @@ export default function MessageComponent({
 
   function handle_message(msg: string, user_sub_id: string) {
     set_text("");
-    setRe_render(!re_render);
     // set_match_messages((prev: any) => {
     //   const item = { content: msg, user_sub_id: user_sub_id };
     //   return [...prev, item];

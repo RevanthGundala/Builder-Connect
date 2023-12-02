@@ -43,6 +43,7 @@ export default function Conversation({
   useEffect(() => {
     if (ref.current) {
       // Scroll to the bottom of the container
+      //TODO:
       ref.current.scrollTop =
         ref.current.scrollHeight - ref.current.clientHeight;
     }
