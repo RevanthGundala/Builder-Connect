@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BriefcaseIcon,
   AcademicCapIcon,
@@ -7,11 +7,13 @@ import {
 } from "@heroicons/react/24/solid";
 
 export default function Profile({ profile }: { profile: any }) {
+  const [image_error, set_image_error] = useState(false);
   return (
     <div className="w-fit h-fit bg-white rounded-lg shadow-md">
       <div className="flex flex-row justify-center items-center pt-4">
         <img
-          src={profile?.image_url}
+          src={image_error ? "/images/default_user.png" : profile?.image_url}
+          onError={() => set_image_error(true)}
           alt={profile?.username}
           className="w-64 h-64 object-cover rounded-full"
         />

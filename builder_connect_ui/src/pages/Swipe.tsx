@@ -76,7 +76,9 @@ export default function Swipe() {
       <Navbar />
       <div className="pt-16 bg-cover bg-center relative mx-auto">
         {recommended_user === "Need to fetch more users" ? (
-          <p className="text-white p-4">{recommended_user}</p>
+          <p className="text-white py-6 text-center text-xl">
+            Not enough users
+          </p>
         ) : (
           <div className="pt-16 bg-cover bg-center relative">
             <div className="flex flex-row justify-center items-center">

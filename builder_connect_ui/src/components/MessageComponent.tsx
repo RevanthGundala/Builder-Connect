@@ -10,37 +10,52 @@ export default function MessageComponent({
   match_profile,
   sub_id,
   room_id,
+  match_messages,
+  set_match_messages,
+  re_render,
+  setRe_render,
 }: {
   profile: any;
   match_profile: any;
   sub_id: string;
   room_id: any;
+  match_messages: any[];
+  set_match_messages: React.Dispatch<React.SetStateAction<any[]>>;
+  re_render: boolean;
+  setRe_render: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [text, set_text] = useState("");
   const [is_typing, set_is_typing] = useState(false);
-  const [is_loading, messages, set_messages, fetch_conversations] =
-    useConversations("");
+  const [image_error, set_image_error] = useState(false);
 
   function handle_typing(mode: string) {
     mode === "IN" ? set_is_typing(true) : set_is_typing(false);
   }
 
   function handle_message(msg: string, user_sub_id: string) {
-    set_messages((prevMessages: any) => {
-      const item = { content: msg, user_sub_id: user_sub_id };
-      set_text("");
-      return [...prevMessages, item];
-    });
+    set_text("");
+    setRe_render(!re_render);
+    // set_match_messages((prev: any) => {
+    //   const item = { content: msg, user_sub_id: user_sub_id };
+    //   return [...prev, item];
+    // });
   }
 
   function on_message(data: any) {
     try {
       let message_data = JSON.parse(data);
-      //   console.log("messgdata: ", message_data);
       if (message_data?.chat_type == "TYPING") {
-        handle_typing(message_data?.value[0]);
+        if (message_data?.content && message_data.content.length > 0) {
+          handle_typing(message_data.content);
+        } else {
+          console.error("Invalid TYPING message format:", message_data);
+        }
       } else if (message_data?.chat_type == "TEXT") {
-        handle_message(message_data?.value[0], message_data?.user_sub_id);
+        if (message_data?.content && message_data.content.length > 0) {
+          handle_message(message_data.content, message_data.user_sub_id);
+        } else {
+          console.error("Invalid TEXT message format:", message_data);
+        }
       }
     } catch (err) {
       console.log(err);
@@ -65,34 +80,37 @@ export default function MessageComponent({
     }
   }
 
-  useEffect(() => {
-    fetch_conversations(room_id);
-  }, [room_id]);
-
   return (
     <>
-      <div className="flex flex-col bg-gray-200 h-5/6 max-h-full w-5/6 mx-auto my-8">
-        <header className="bg-gray-300 border-b border-gray-400 py-6 px-2">
-          <div className="flex flex-col space-y-1 items-center">
-            <img
-              src={match_profile?.image_url}
-              alt={match_profile?.username}
-              className="w-6 h-6 object-cover rounded-full"
-            />
-            <div className="text-md text-black">
-              <p>{match_profile?.username}</p>
+      <div className="flex flex-col bg-gray-200 w-5/6 mx-auto my-8">
+        <div className="flex flex-col flex-1">
+          <header className="bg-gray-300 border-b border-gray-400 py-6 px-2">
+            <div className="flex flex-col space-y-1 items-center">
+              <img
+                src={
+                  image_error
+                    ? "/images/default_user.png"
+                    : match_profile?.image_url
+                }
+                onError={() => set_image_error(true)}
+                alt={match_profile?.username}
+                className="w-12 h-12 object-cover rounded-full"
+              />
+              <div className="text-md text-black">
+                <p>{match_profile?.username}</p>
+              </div>
             </div>
-          </div>
-        </header>
-        <main className="flex flex-col flex-1 border-b border-gray-400 overflow-auto">
-          <Conversation
-            messages={messages}
-            sub_id={sub_id}
-            profile={profile}
-            match_profile={match_profile}
-          />
-        </main>
-        <footer>
+          </header>
+          <main className="flex flex-col border-b border-gray-400 max-h-[600px] overflow-auto">
+            <Conversation
+              messages={match_messages}
+              sub_id={sub_id}
+              profile={profile}
+              match_profile={match_profile}
+            />
+          </main>
+        </div>
+        <footer className="flex flex-col">
           <form
             className="flex flex-row items-center space-x-2 p-4"
             onSubmit={submit_message}
