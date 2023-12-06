@@ -45,17 +45,8 @@ export default function Conversation({
   profile: any;
   match_profile: any;
 }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (ref.current) {
-      // Scroll to the bottom of the container
-      //TODO:
-      ref.current.scrollTop =
-        ref.current.scrollHeight - ref.current.clientHeight;
-    }
-  }, [messages]);
   return (
-    <div className="p-4 space-y-4" ref={ref}>
+    <div className="p-4 space-y-4">
       {messages.map((message: any, index: number) => {
         return (
           <ConversationItem

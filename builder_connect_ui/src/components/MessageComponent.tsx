@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { PhotoIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import Room from "@/components/Conversation";
 import Conversation from "@/components/Conversation";
@@ -10,21 +10,26 @@ export default function MessageComponent({
   match_profile,
   sub_id,
   room_id,
+  messages,
 }: {
   profile: any;
   match_profile: any;
   sub_id: string;
   room_id: string;
+  messages: any[];
 }) {
   const [text, set_text] = useState("");
   const [is_typing, set_is_typing] = useState(false);
   const [image_error, set_image_error] = useState(false);
-  const [is_loading, messages, set_messages, fetch_conversations] =
-    useConversations(room_id);
+  //   const [is_loading, messages, set_messages, fetch_conversations] =
+  //     useConversations(room_id);
+  const ref = useRef<HTMLDivElement | null>(null);
 
   function handle_typing(mode: string) {
     mode === "IN" ? set_is_typing(true) : set_is_typing(false);
   }
+
+  //   console.log("messages: ", messages);
 
   function handle_message(msg: string, user_sub_id: string) {
     set_text("");
@@ -74,7 +79,9 @@ export default function MessageComponent({
   }
 
   useEffect(() => {
-    fetch_conversations(room_id);
+    if (ref.current) {
+      ref.current.scrollTop = ref.current.scrollHeight;
+    }
   }, [messages]);
 
   return (
@@ -98,7 +105,10 @@ export default function MessageComponent({
               </div>
             </div>
           </header>
-          <main className="flex flex-col border-b border-gray-400 max-h-[600px] min-h-[600px] overflow-auto">
+          <main
+            ref={ref}
+            className="flex flex-col border-b border-gray-400 max-h-[600px] min-h-[600px] overflow-auto"
+          >
             <Conversation
               messages={messages}
               sub_id={sub_id}

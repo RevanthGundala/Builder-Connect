@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { EnvelopeIcon } from "@heroicons/react/24/solid";
 import { view_profile } from "@/libs/functions";
-import useConversations from "@/libs/useConversation";
 
 export default function Sidebar({
   sub_id,
@@ -21,6 +20,7 @@ export default function Sidebar({
   const [match_sub_id, set_match_sub_id] = useState("");
   const [rooms, set_rooms] = useState<any[]>([]);
   const [image_error, set_image_error] = useState(false);
+  const [last_message, set_last_message] = useState<any>();
 
   async function get_profile(id = sub_id) {
     const profile_data = await view_profile(id, profile);
@@ -38,6 +38,8 @@ export default function Sidebar({
       set_rooms(rooms); // rooms = [match_profile, room_id]
     }
   }
+
+  // console.log("all_messages: ", all_messages);
 
   useEffect(() => {
     get_profile();
@@ -60,29 +62,39 @@ export default function Sidebar({
             }}
           >
             {room[0].sub_id === match_sub_id ? (
-              <div className="flex flex-row space-x-2 bg-gray-300 py-4 px-2">
-                <img
-                  src={
-                    image_error
-                      ? "/images/default_user.png"
-                      : room[0]?.image_url
-                  }
-                  onError={() => set_image_error(true)}
-                  alt={room[0].username}
-                  className="w-6 h-6 object-cover rounded-full"
-                />
-                <div className="flex flex-col">
-                  <p>{room[0].username}</p>
-                  <p>
-                    {all_messages && all_messages.has(room.room_id)
-                      ? (all_messages.get(room.room_id) ?? [])[
-                          (all_messages.get(room.room_id) ?? []).length - 1
-                        ]?.content
-                      : "New Match!"}
-                  </p>
-
-                  {/* <p>{new Date(last_message.created_at).toLocaleString()}</p> */}
+              <div className="flex flex-row bg-gray-300 py-4 px-2">
+                <div className="flex flex-row flex-1 px-2 space-x-3">
+                  <img
+                    src={
+                      image_error
+                        ? "/images/default_user.png"
+                        : room[0]?.image_url
+                    }
+                    onError={() => set_image_error(true)}
+                    alt={room[0].username}
+                    className="w-6 h-6 object-cover rounded-full"
+                  />
+                  <div className="flex flex-col">
+                    <p>{room[0].username}</p>
+                    <p>
+                      {all_messages && all_messages.has(room[1])
+                        ? (() => {
+                            const roomMessages =
+                              all_messages.get(room[1]) ?? [];
+                            const lastMessage =
+                              roomMessages.length > 0
+                                ? roomMessages[roomMessages.length - 1]
+                                : null;
+                            console.log("lastMessage", lastMessage);
+                            // set_last_message(lastMessage);
+                            return lastMessage?.content;
+                          })()
+                        : "New Match!"}
+                    </p>
+                    {/* <p>{new Date(last_message.created_at).toLocaleString()}</p> */}
+                  </div>
                 </div>
+                <div className="flex flex-row px-2">Time</div>
               </div>
             ) : (
               <div className="flex flex-row space-x-2 bg-gray-300 opacity-70 py-4 px-2">
@@ -98,8 +110,20 @@ export default function Sidebar({
                 />
                 <div className="flex flex-col">
                   <p>{room[0].username}</p>
-                  <p>New Match!</p>
+                  <p>
+                    {all_messages && all_messages.has(room[1])
+                      ? (() => {
+                          const roomMessages = all_messages.get(room[1]) ?? [];
+                          const lastMessage =
+                            roomMessages.length > 0
+                              ? roomMessages[roomMessages.length - 1]
+                              : null;
+                          return lastMessage?.content;
+                        })()
+                      : "New Match!"}
+                  </p>
                 </div>
+                <div className="flex flex-row">Time</div>
               </div>
             )}
           </div>

@@ -14,22 +14,50 @@ import useConversations from "@/libs/useConversation";
 export default function Messages() {
   const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
   const [profile, set_profile] = useState<any>(null);
-  const [is_loading, messages, set_messages, fetch_conversations] =
-    useConversations("");
+  // const [is_loading, messages, set_messages, fetch_conversations] =
+  //   useConversations("");
   const [match_profile, set_match_profile] = useState<any>(null);
-  const [match_room_id, set_match_room_id] = useState<string | null>(null);
+  const [match_room_id, set_match_room_id] = useState<string>("");
+  const [all_messages, setAll_messages] = useState(new Map());
 
-  const all_messages: Map<string, any[]> = useMemo(() => {
-    const map = new Map();
-    if (!profile) return map;
-    profile.matches
-      .flatMap((room: any) => room.room_id)
-      .forEach((room_id: string) => {
-        fetch_conversations(room_id); // sets messages variable
-        map.set(room_id, messages);
-      });
-    return map;
+  const fetch_room_data = async (room_id: string) => {
+    if (!room_id) return;
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/messages/${room_id}`;
+    try {
+      let resp = await fetch(url).then((res) => res.json());
+      return resp;
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  // const all_messages: Map<string, any[]> = useMemo(() => {
+  //   const map = new Map();
+  //   if (!profile) return map;
+  //   profile.matches
+  //     .flatMap((room: any) => room.room_id)
+  //     .forEach((room_id: string) => {
+  //       let messages = fetch_room_data(room_id).then((res) => res.json()); // sets messages variable
+  //       console
+  //       map.set(room_id, messages);
+  //     });
+  //   return map;
+  // }, [profile, match_profile]);
+
+  useEffect(() => {
+    if (profile) {
+      profile.matches
+        .flatMap((room: any) => room.room_id)
+        .forEach(async (room_id: string) => {
+          const messages = await fetch_room_data(room_id);
+          setAll_messages((prev) => {
+            return new Map(prev.set(room_id, messages));
+          });
+        });
+    }
   }, [profile, match_profile]);
+
+  // console.log("all_messages", all_messages);
 
   return (
     <>
@@ -58,6 +86,7 @@ export default function Messages() {
                 match_profile={match_profile}
                 sub_id={sub_id}
                 room_id={match_room_id}
+                messages={all_messages.get(match_room_id) ?? []}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
