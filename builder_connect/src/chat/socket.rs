@@ -15,7 +15,7 @@ pub struct Message(pub String);
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct Connect {
-    pub user_id: String,
+    pub user_sub_id: String,
     pub room_id: String,
     pub addr: Recipient<Message>,
 }
@@ -23,14 +23,14 @@ pub struct Connect {
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct Disconnect {
-    pub user_id: String,
+    pub user_sub_id: String,
     pub room_id: String,
 }
 
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct ClientMessage {
-    pub user_id: String,
+    pub user_sub_id: String,
     pub room_id: String,
     pub content: String,
 }
@@ -84,15 +84,15 @@ impl Handler<Connect> for ChatServer {
         self
             .rooms
             .entry(msg.room_id)
-            .or_insert_with(HashSet::new).insert(msg.user_id.clone());
+            .or_insert_with(HashSet::new).insert(msg.user_sub_id.clone());
         self
             .sessions
-            .insert(msg.user_id.clone(), msg.addr);
+            .insert(msg.user_sub_id.clone(), msg.addr);
 
         self.send_message(&json!({
-            "content": format!("{} connected!", msg.user_id),
+            "content": format!("{} connected!", msg.user_sub_id),
             "chat_type": session::ChatType::CONNECT
-        }).to_string(), &msg.user_id);
+        }).to_string(), &msg.user_sub_id);
     }
 }
 
@@ -100,14 +100,14 @@ impl Handler<Disconnect> for ChatServer {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
-        if self.sessions.remove(&msg.user_id).is_some() {
+        if self.sessions.remove(&msg.user_sub_id).is_some() {
             self.rooms
                 .get(&msg.room_id)
                 .unwrap()
                 .iter()
-                .filter(|conn_id| *conn_id.to_owned() != msg.user_id)
+                .filter(|conn_id| *conn_id.to_owned() != msg.user_sub_id)
                 .for_each(|user_id| self.send_message(&json!({
-                    "content": format!("{} disconnected!", msg.user_id),
+                    "content": format!("{} disconnected!", msg.user_sub_id),
                     "chat_type": session::ChatType::DISCONNECT}).to_string(), user_id));
         }
     }

@@ -57,7 +57,7 @@ pub enum ChatType {
 struct ChatMessage {
     pub id: Option<Uuid>,
     pub room_id: String,
-    pub user_id: String,
+    pub user_sub_id: String,
     pub chat_type: ChatType,
     pub content: String,
 }
@@ -72,7 +72,7 @@ impl Actor for WsChatSession {
 
         self.addr
             .send(Connect {
-                user_id: self.id.clone(),
+                user_sub_id: self.id.clone(),
                 room_id: self.room_id.clone(),
                 addr: addr.recipient(),
             })
@@ -133,11 +133,11 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                             content: input.content.to_string(),
                             id: Some(Uuid::parse_str(self.id.clone()).unwrap()),
                             room_id: input.room_id.clone(),
-                            user_id: input.user_id.to_string(),
+                            user_sub_id: input.user_sub_id.to_string(),
                         };
                         let msg = serde_json::to_string(&chat_msg).unwrap();
                         self.addr.do_send(ClientMessage {
-                            user_id: self.id.clone(),
+                            user_sub_id: self.id.clone(),
                             room_id: self.room_id.clone(),
                             content: msg
                         })
@@ -147,7 +147,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                         let room_id_clone = self.room_id.clone();
                         let (input_room_id, input_user_id, input_content) = (
                             input.room_id.clone(),
-                            input.user_id.clone(),
+                            input.user_sub_id.clone(),
                             input.content.clone(),
                         );
                         let fut = async move {
@@ -186,13 +186,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                         let chat_msg = ChatMessage {
                             id: Some(Uuid::parse_str(self.id.clone()).unwrap()),
                             room_id: input.room_id.clone(),
-                            user_id: input.user_id.to_string(),
+                            user_sub_id: input.user_sub_id.to_string(),
                             chat_type: ChatType::TEXT,
                             content: input.content.to_string(),
                         };
                         let msg = serde_json::to_string(&chat_msg).unwrap();
                         self.addr.do_send(ClientMessage {
-                            user_id: self.id.clone(),
+                            user_sub_id: self.id.clone(),
                             room_id: self.room_id.clone(),
                             content: msg
                         })

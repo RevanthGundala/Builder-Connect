@@ -85,7 +85,6 @@ export default function Sidebar({
                               roomMessages.length > 0
                                 ? roomMessages[roomMessages.length - 1]
                                 : null;
-                            console.log("lastMessage", lastMessage);
                             // set_last_message(lastMessage);
                             return lastMessage?.content;
                           })()

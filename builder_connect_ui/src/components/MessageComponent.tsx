@@ -2,8 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { PhotoIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 import Room from "@/components/Conversation";
 import Conversation from "@/components/Conversation";
-import useConversations from "@/libs/useConversation";
-import useWebsocket from "@/libs/useWebsocket";
+import useWebSocket, { ReadyState } from "react-use-websocket";
 
 export default function MessageComponent({
   profile,
@@ -21,46 +20,24 @@ export default function MessageComponent({
   const [text, set_text] = useState("");
   const [is_typing, set_is_typing] = useState(false);
   const [image_error, set_image_error] = useState(false);
-  //   const [is_loading, messages, set_messages, fetch_conversations] =
-  //     useConversations(room_id);
+  const [socket_messages, set_socket_messages] = useState<any[]>(messages);
   const ref = useRef<HTMLDivElement | null>(null);
+
+  const { sendJsonMessage, lastJsonMessage } = useWebSocket(
+    `ws://${process.env.NEXT_PUBLIC_BASE_URL?.slice(7)}/chat/${room_id}`
+  );
+
+  useEffect(() => {
+    if (lastJsonMessage && lastJsonMessage.chat_type === "TEXT") {
+      set_socket_messages((prev) => [...prev, lastJsonMessage]);
+    }
+  }, [lastJsonMessage]);
+
+  console.log("lastJsonMessage", lastJsonMessage);
 
   function handle_typing(mode: string) {
     mode === "IN" ? set_is_typing(true) : set_is_typing(false);
   }
-
-  //   console.log("messages: ", messages);
-
-  function handle_message(msg: string, user_sub_id: string) {
-    set_text("");
-    // set_match_messages((prev: any) => {
-    //   const item = { content: msg, user_sub_id: user_sub_id };
-    //   return [...prev, item];
-    // });
-  }
-
-  function on_message(data: any) {
-    try {
-      let message_data = JSON.parse(data);
-      if (message_data?.chat_type == "TYPING") {
-        if (message_data?.content && message_data.content.length > 0) {
-          handle_typing(message_data.content);
-        } else {
-          console.error("Invalid TYPING message format:", message_data);
-        }
-      } else if (message_data?.chat_type == "TEXT") {
-        if (message_data?.content && message_data.content.length > 0) {
-          handle_message(message_data.content, message_data.user_sub_id);
-        } else {
-          console.error("Invalid TEXT message format:", message_data);
-        }
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  const send_message = useWebsocket(on_message, room_id);
 
   function submit_message(e: any) {
     e.preventDefault();
@@ -69,11 +46,11 @@ export default function MessageComponent({
     } else {
       const data = {
         room_id: room_id,
-        user_id: sub_id,
+        user_sub_id: sub_id,
         chat_type: "TEXT",
         content: text,
       };
-      send_message(JSON.stringify(data));
+      sendJsonMessage(data);
       set_text("");
     }
   }
@@ -82,7 +59,7 @@ export default function MessageComponent({
     if (ref.current) {
       ref.current.scrollTop = ref.current.scrollHeight;
     }
-  }, [messages]);
+  }, [socket_messages]);
 
   return (
     <>
@@ -110,7 +87,7 @@ export default function MessageComponent({
             className="flex flex-col border-b border-gray-400 max-h-[600px] min-h-[600px] overflow-auto"
           >
             <Conversation
-              messages={messages}
+              messages={socket_messages}
               sub_id={sub_id}
               profile={profile}
               match_profile={match_profile}

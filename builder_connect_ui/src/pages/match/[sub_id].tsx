@@ -9,7 +9,6 @@ import Profile from "@/components/Profile";
 import MessageComponent from "@/components/MessageComponent";
 import Link from "next/link";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
-import useConversations from "@/libs/useConversation";
 
 export default function Messages() {
   const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
