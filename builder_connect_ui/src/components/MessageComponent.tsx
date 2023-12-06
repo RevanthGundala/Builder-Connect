@@ -33,7 +33,11 @@ export default function MessageComponent({
     }
   }, [lastJsonMessage]);
 
-  console.log("lastJsonMessage", lastJsonMessage);
+  useEffect(() => {
+    set_socket_messages(messages);
+  }, [room_id]);
+
+  // console.log("lastJsonMessage", lastJsonMessage);
 
   function handle_typing(mode: string) {
     mode === "IN" ? set_is_typing(true) : set_is_typing(false);

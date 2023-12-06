@@ -60,6 +60,7 @@ struct ChatMessage {
     pub user_sub_id: String,
     pub chat_type: ChatType,
     pub content: String,
+    pub created_at: Option<DateTime<Utc>>,
 }
 
 impl Actor for WsChatSession {
@@ -126,6 +127,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                 }
 
                 let input = data_json.as_ref().unwrap();
+                let time = Utc::now();
                 match &input.chat_type {
                     ChatType::TYPING => {
                         let chat_msg = ChatMessage {
@@ -134,6 +136,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                             id: Some(Uuid::parse_str(self.id.clone()).unwrap()),
                             room_id: input.room_id.clone(),
                             user_sub_id: input.user_sub_id.to_string(),
+                            created_at: Some(time),
                         };
                         let msg = serde_json::to_string(&chat_msg).unwrap();
                         self.addr.do_send(ClientMessage {
@@ -158,27 +161,25 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                 input_room_id.clone(),
                                 input_user_id.to_string(),
                                 input_content.clone(),
-                                None,
+                                Utc::now(),
+                                true
                             );
                             let messages = db.get_messages_by_room_id(&room_id_clone)
                                 .await
                                 .unwrap();
                             let mut iter = messages.iter().rev(); // Reverse iterator
                             while let Some(last_msg) = iter.next() {
-                                if let Some(last_msg_time) = last_msg.created_at {
-                                    if last_msg_time < Utc::now() - chrono::Duration::minutes(5) {
-                                        new_message = Message::new(
-                                            input_room_id,
-                                            input_user_id,
-                                            input_content,
-                                            Some(Utc::now()),
-                                        );
-                                    }
-                                    break; // Exit the loop if a message with a valid created_at is found
+                                if last_msg.created_at < Utc::now() - chrono::Duration::minutes(5) {
+                                    new_message = Message::new(
+                                        input_room_id,
+                                        input_user_id,
+                                        input_content,
+                                        Utc::now(),
+                                        false
+                                    );
+                                    break;
                                 }
                             }
-
-                            
                             let _ = db.create_message(new_message).await;
                         };
                         let fut = actix::fut::wrap_future::<_, Self>(fut);
@@ -189,6 +190,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                             user_sub_id: input.user_sub_id.to_string(),
                             chat_type: ChatType::TEXT,
                             content: input.content.to_string(),
+                            created_at: Some(time),
                         };
                         let msg = serde_json::to_string(&chat_msg).unwrap();
                         self.addr.do_send(ClientMessage {

@@ -54,7 +54,7 @@ export default function Conversation({
             right={message.user_sub_id === sub_id}
             content={message.content}
             created_at={
-              message.created_at
+              message.should_display
                 ? new Date(message.created_at).toLocaleString(undefined, {
                     weekday: "short",
                     year: "numeric",
