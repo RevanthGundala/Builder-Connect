@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { EnvelopeIcon } from "@heroicons/react/24/solid";
 import { view_profile } from "@/libs/functions";
 import useWebSocket from "react-use-websocket";
+import SidebarComponent from "./SidebarComponent";
 
 export default function Sidebar({
   sub_id,
@@ -22,31 +23,40 @@ export default function Sidebar({
 }) {
   const [match_sub_id, set_match_sub_id] = useState("");
   const [rooms, set_rooms] = useState<any[]>([]);
-  const [image_error, set_image_error] = useState(false);
 
-  const { lastJsonMessage } = useWebSocket(
-    `ws://${process.env.NEXT_PUBLIC_BASE_URL?.slice(7)}/chat/${match_room_id}`
-  );
+  //TODO: How to get last message from websocket for all rooms?
+  // possible separate into sidebar component and pass in match_room_id as prop
+  // const { lastJsonMessage } = useWebSocket(
+  //   `ws://${process.env.NEXT_PUBLIC_BASE_URL?.slice(7)}/chat/${match_room_id}`
+  // );
 
-  console.log("lastJsonMessage", lastJsonMessage);
+  // console.log("lastJsonMessage", lastJsonMessage);
 
-  function get_last_message(room_id: string): string | any {
-    if (
-      room_id === match_room_id &&
-      lastJsonMessage &&
-      lastJsonMessage.chat_type === "TEXT"
-    )
-      return lastJsonMessage;
-    if (all_messages && all_messages.has(room_id)) {
-      const room_messages = all_messages.get(room_id) ?? [];
-      const last_message =
-        room_messages.length > 0
-          ? room_messages[room_messages.length - 1]
-          : null;
-      return last_message;
-    }
-    return "Loading...";
+  function is_online(last_seen_date: Date): boolean {
+    const now = new Date();
+    const diff = now.getTime() - last_seen_date.getTime();
+    const diff_minutes = Math.round(diff / 60000);
+    return diff_minutes < 10;
   }
+
+  // function get_last_message(room_id: string): string | any {
+  //   if (
+  //     room_id === match_room_id &&
+  //     lastJsonMessage &&
+  //     lastJsonMessage.chat_type === "TEXT"
+  //   )
+  //     return lastJsonMessage;
+  //   if (all_messages && all_messages.has(room_id)) {
+  //     const room_messages = all_messages.get(room_id) ?? [];
+  //     const last_message =
+  //       room_messages.length > 0
+  //         ? room_messages[room_messages.length - 1]
+  //         : null;
+  //     console.log("last_message: ", last_message);
+  //     return last_message;
+  //   }
+  //   return "Loading...";
+  // }
 
   async function get_profile(id = sub_id) {
     const profile_data = await view_profile(id, profile);
@@ -73,78 +83,32 @@ export default function Sidebar({
     get_profile(match_sub_id);
   }, [match_sub_id]);
 
+  // useEffect(() => {
+  //   rooms.sort((a: any[], b: any[]) => {
+  //     const a_last_message = get_last_message(a[1]); // a[1] = a_room_id
+  //     const b_last_message = get_last_message(b[1]);
+  //     if (a_last_message && b_last_message) {
+  //       return (
+  //         new Date(b_last_message.created_at).getTime() -
+  //         new Date(a_last_message.created_at).getTime()
+  //       );
+  //     }
+  //     return 0;
+  //   });
+  // }, [lastJsonMessage, rooms]);
+
   return (
     <div>
       {rooms && rooms.length > 0 ? (
         rooms.map((room: any, index: number) => (
-          <div
+          <SidebarComponent
             key={index}
-            className="flex flex-col text-black"
-            onClick={() => {
-              set_match_sub_id(room[0].sub_id);
-              set_match_room_id(room[1]);
-            }}
-          >
-            {room[0].sub_id === match_sub_id ? (
-              <div className="flex flex-row bg-gray-300 py-4 px-2">
-                <div className="flex flex-row flex-1 px-2 space-x-3">
-                  <img
-                    src={
-                      image_error
-                        ? "/images/default_user.png"
-                        : room[0]?.image_url
-                    }
-                    onError={() => set_image_error(true)}
-                    alt={room[0].username}
-                    className="w-6 h-6 object-cover rounded-full"
-                  />
-                  <div className="flex flex-col">
-                    <p>{room[0].username}</p>
-                    <p>{get_last_message(room[1])?.content ?? "New match!"}</p>
-                  </div>
-                </div>
-                <div className="flex flex-row px-2">
-                  {get_last_message(room[1])?.created_at
-                    ? new Date(
-                        get_last_message(room[1])?.created_at
-                      ).toLocaleString(undefined, {
-                        hour: "numeric",
-                        minute: "numeric",
-                      })
-                    : ""}
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-row bg-gray-300 opacity-70 py-4 px-2">
-                <div className="flex flex-row flex-1 px-2 space-x-3">
-                  <img
-                    src={
-                      image_error
-                        ? "/images/default_user.png"
-                        : room[0]?.image_url
-                    }
-                    onError={() => set_image_error(true)}
-                    alt={room[0].username}
-                    className="w-6 h-6 object-cover rounded-full"
-                  />
-                  <div className="flex flex-col">
-                    <p>{room[0].username}</p>
-                    <p>{get_last_message(room[1])?.content ?? "New match!"}</p>
-                  </div>
-                </div>
-                <div className="flex flex-row px-2">
-                  {get_last_message(room[1])?.created_at
-                    ? new Date(
-                        get_last_message(room[1])?.created_at
-                      ).toLocaleString(undefined, {
-                        hour: "numeric",
-                        minute: "numeric",
-                      })
-                    : ""}
-                </div>
-              </div>
-            )}
-          </div>
+            room={room}
+            last_message={all_messages.get(room[1])?.slice(-1)[0]}
+            match_sub_id={match_sub_id}
+            set_match_sub_id={set_match_sub_id}
+            set_match_room_id={set_match_room_id}
+          />
         ))
       ) : (
         <div className="pt-4 bg-cover bg-center">

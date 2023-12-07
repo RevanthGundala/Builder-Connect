@@ -4,12 +4,6 @@ use mongodb::bson::doc;
 use chrono::{DateTime, Utc};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Time {
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Access {
     Admin,
     User,
@@ -93,7 +87,6 @@ pub struct User {
     pub username: String,
     pub email: String,
     pub discord: String,
-    pub github: Option<String>, 
     pub website: Option<String>, 
     pub age: Option<String>, 
     pub location: Option<String>,
@@ -108,6 +101,7 @@ pub struct User {
     pub cannot_match: Option<Vec<String>>, // list of user's ids who this user cannot match with
     pub public_fields: Option<UserView>, // list of fields that are public
     pub vector_embeddings: Option<Vec<f32>>,
+    pub last_seen: Option<DateTime<Utc>>,
 }
 
 impl User {
@@ -119,7 +113,6 @@ impl User {
             username: "".to_string(),
             email: "".to_string(),
             discord: "".to_string(),
-            github: Some("".to_string()),
             website: Some("".to_string()),
             age: Some("".to_string()),
             location: Some("".to_string()),
@@ -134,6 +127,7 @@ impl User {
             cannot_match: Some(vec![sub_id]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
+            last_seen: Some(Utc::now()),
         }
     } 
 }

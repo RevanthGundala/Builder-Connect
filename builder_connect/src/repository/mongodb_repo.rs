@@ -105,7 +105,6 @@ impl MongoRepo {
                     "username": new_user.username,
                     "email": new_user.email,
                     "discord": new_user.discord, 
-                    "github": new_user.github,
                     "website": new_user.website,
                     "age": new_user.age,
                     "location": new_user.location,  
@@ -119,7 +118,8 @@ impl MongoRepo {
                     "matches": bson::to_bson(&new_user.matches).unwrap(),
                     "cannot_match": bson::to_bson(&new_user.cannot_match).unwrap(),
                     "public_fields": bson::to_bson(&new_user.public_fields).unwrap(),
-                    "vector_embeddings": bson::to_bson(&new_user.vector_embeddings).unwrap()
+                    "vector_embeddings": bson::to_bson(&new_user.vector_embeddings).unwrap(),
+                    "last_seen": bson::to_bson(&new_user.last_seen).unwrap(),
                 },
         };
         let updated_doc = self

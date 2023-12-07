@@ -8,7 +8,8 @@ use super::socket::{ChatServer, Connect, Disconnect, self, ClientMessage};
 use crate::repository::mongodb_repo::MongoRepo;
 use serde::{Deserialize, Serialize};
 use crate::models::message_model::Message;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc, Timelike};
+use crate::models::user_model::User;
 
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
@@ -162,25 +163,33 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                 input_user_id.to_string(),
                                 input_content.clone(),
                                 Utc::now(),
-                                true
+                                false
                             );
+                            let user = db.get_user(&input_user_id).await.unwrap();
+                            let updated_user = User{
+                                last_seen: Some(Utc::now()),
+                                ..user
+                            };
+                            let _ = db.update_user(&input_user_id, updated_user).await.unwrap();
                             let messages = db.get_messages_by_room_id(&room_id_clone)
                                 .await
                                 .unwrap();
                             let mut iter = messages.iter().rev(); // Reverse iterator
                             while let Some(last_msg) = iter.next() {
-                                if last_msg.created_at < Utc::now() - chrono::Duration::minutes(5) {
+                                if last_msg.created_at.minute() < Utc::now().minute() - 5 {
+                                    println!("{}", last_msg.created_at.minute());
                                     new_message = Message::new(
                                         input_room_id,
                                         input_user_id,
                                         input_content,
                                         Utc::now(),
-                                        false
+                                        true
                                     );
+                                    println!("Should display {:?}", new_message.content);
                                     break;
                                 }
                             }
-                            let _ = db.create_message(new_message).await;
+                            let _ = db.create_message(new_message).await.unwrap();
                         };
                         let fut = actix::fut::wrap_future::<_, Self>(fut);
                         ctx.spawn(fut);

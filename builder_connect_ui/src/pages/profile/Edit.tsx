@@ -81,7 +81,6 @@ export default function Edit() {
     }
   }, [is_connected, profile]);
 
-  // TODO: Add image upload
   return (
     <>
       <ParticleBackground />
@@ -114,14 +113,6 @@ export default function Edit() {
               value={profile?.discord}
               descriptive={false}
             />
-            {/* <ProfileComponent
-              text={"Github"}
-              placeholder=""
-              func={set_github}
-              required={false}
-              value={profile?.github}
-              descriptive={false}
-            /> */}
             <ProfileComponent
               text={"Website"}
               placeholder="Personal website or github"
@@ -156,7 +147,7 @@ export default function Edit() {
             />
             <ProfileComponent
               text={"In at most 3 sentences, describe your background."}
-              placeholder="Ex. I am a student at the University of Waterloo. I joined because I wanted to build something with AI and wanted to meet other people who are interested in AI."
+              placeholder="Ex. I am a student at the University of Waterloo. Currently, I am in my third year and I am studying computer science. I have been interested in doing a project in AI and I am looking for a partner to work with"
               func={set_reason}
               required={true}
               value={profile?.reason}
@@ -166,7 +157,7 @@ export default function Edit() {
               text={
                 "In at most 3 sentences, describe a project you want to build."
               }
-              placeholder="Ex. I want to build an AI restaurant app."
+              placeholder="Ex. I want to build a custom GPT that helps people do their homework."
               func={set_project_interests}
               required={true}
               value={profile?.project_interests}

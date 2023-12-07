@@ -10,6 +10,7 @@ use actix_web::{
 use super::user_actions::generate_embedding;
 use crate::models::user_model::UserView;
 use mongodb::bson::{doc, oid::ObjectId};
+use chrono::Utc;
 
 // test
 #[post("/create")]
@@ -22,7 +23,6 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             username: String::from("user1"),
             email: String::from("user1@example.com"),
             discord: String::from("user1#1234"),
-            github: Some(String::from("user1github")),
             website: Some(String::from("https://user1.com")),
             age: Some(String::from("25")),
             location: Some(String::from("City1, Country1")),
@@ -37,6 +37,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             cannot_match: Some(vec![]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
+            last_seen: Some(Utc::now()),
         },
         User {
             id: Some(ObjectId::new()),
@@ -45,7 +46,6 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             username: String::from("user2"),
             email: String::from("user2@example.com"),
             discord: String::from("user2#5678"),
-            github: Some(String::from("user2github")),
             website: Some(String::from("https://user2.com")),
             age: Some(String::from("30")),
             location: Some(String::from("City2, Country2")),
@@ -60,6 +60,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             cannot_match: Some(vec![]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
+            last_seen: Some(Utc::now()),
         },
         User {
             id: Some(ObjectId::new()),
@@ -68,7 +69,6 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             username: String::from("user3"),
             email: String::from("user3@example.com"),
             discord: String::from("user3#9012"),
-            github: Some(String::from("user3github")),
             website: Some(String::from("https://user3.com")),
             age: Some(String::from("22")),
             location: Some(String::from("City3, Country3")),
@@ -83,6 +83,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             cannot_match: Some(vec![]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
+            last_seen: Some(Utc::now()),
         },
         User {
             id: Some(ObjectId::new()),
@@ -91,7 +92,6 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             username: String::from("user4"),
             email: String::from("user4@example.com"),
             discord: String::from("user4#3456"),
-            github: Some(String::from("user4github")),
             website: Some(String::from("https://user4.com")),
             age: Some(String::from("28")),
             location: Some(String::from("City4, Country4")),
@@ -106,6 +106,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             cannot_match: Some(vec![]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
+            last_seen: Some(Utc::now()),
         },
         User {
             id: Some(ObjectId::new()),
@@ -114,7 +115,6 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             username: String::from("user5"),
             email: String::from("user5@example.com"),
             discord: String::from("user5#6789"),
-            github: Some(String::from("user5github")),
             website: Some(String::from("https://user5.com")),
             age: Some(String::from("35")),
             location: Some(String::from("City5, Country5")),
@@ -129,6 +129,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             cannot_match: Some(vec![]),
             public_fields: Some(UserView::default()),
             vector_embeddings: Some(vec![]),
+            last_seen: Some(Utc::now()),
         },
     ];
     let mut res;
@@ -271,7 +272,6 @@ fn set_fields(new_user: User, embeddings: Option<Vec<f32>>, sub_id: Option<Strin
         username: new_user.username.to_owned(),
         email: new_user.email.to_owned(),
         discord: new_user.discord.to_owned(),
-        github: new_user.github.to_owned(),
         website: new_user.website.to_owned(),
         age: new_user.age.to_owned(),
         location: new_user.location.to_owned(),
@@ -286,5 +286,6 @@ fn set_fields(new_user: User, embeddings: Option<Vec<f32>>, sub_id: Option<Strin
         cannot_match: new_user.cannot_match.to_owned(),
         public_fields: new_user.public_fields.to_owned(),
         vector_embeddings: embeddings,
+        last_seen: new_user.last_seen.to_owned(),
     }
 }
