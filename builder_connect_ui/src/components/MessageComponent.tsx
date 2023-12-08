@@ -93,12 +93,7 @@ export default function MessageComponent({
             ref={ref}
             className="flex flex-col border-b border-gray-400 max-h-[600px] min-h-[600px] overflow-auto"
           >
-            <Conversation
-              messages={socket_messages}
-              sub_id={sub_id}
-              profile={profile}
-              match_profile={match_profile}
-            />
+            <Conversation messages={socket_messages} sub_id={sub_id} />
           </main>
         </div>
         <footer className="flex flex-col">

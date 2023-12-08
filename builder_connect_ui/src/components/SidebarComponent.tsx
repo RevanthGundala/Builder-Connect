@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import useWebSocket from "react-use-websocket";
 
 export default function SidebarComponent({
   room,
@@ -15,25 +14,15 @@ export default function SidebarComponent({
   set_match_room_id: React.Dispatch<React.SetStateAction<string>>;
 }) {
   const [image_error, set_image_error] = useState(false);
-  const [seen, set_seen] = useState(true);
   const [is_online, set_is_online] = useState(false);
 
-  const { lastJsonMessage } = useWebSocket(
-    `ws://${process.env.NEXT_PUBLIC_BASE_URL?.slice(7)}/chat/${room[1]}`
-  );
-
-  function check_is_online(last_seen_date: Date) {
+  function check_is_online(last_seen_date: Date | undefined) {
+    if (!last_seen_date) return;
     const now = new Date();
     const diff = now.getTime() - last_seen_date.getTime();
     const diff_minutes = Math.round(diff / 60000);
     diff_minutes < 10 ? set_is_online(true) : set_is_online(false);
   }
-
-  useEffect(() => {
-    if (lastJsonMessage && lastJsonMessage.chat_type === "TEXT") {
-      set_seen(false);
-    }
-  }, [lastJsonMessage]);
 
   useEffect(() => {
     check_is_online(new Date(room[0].last_seen));
@@ -49,7 +38,6 @@ export default function SidebarComponent({
       onClick={() => {
         set_match_sub_id(room[0].sub_id);
         set_match_room_id(room[1]);
-        set_seen(true);
       }}
     >
       <div

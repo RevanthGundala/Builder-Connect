@@ -28,9 +28,9 @@ pub struct GoogleOAuthClient {
 pub struct DiscordOAuthClient{
     client: BasicClient,
 }
+
 // Fix time for frontend
-// add online feature
-// new match to the top/newest message 
+// seen notification
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "lowercase")] 

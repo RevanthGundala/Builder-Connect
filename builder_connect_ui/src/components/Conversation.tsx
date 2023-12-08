@@ -42,8 +42,6 @@ export default function Conversation({
 }: {
   messages: any[];
   sub_id: string;
-  profile: any;
-  match_profile: any;
 }) {
   return (
     <div className="p-4 space-y-4">
