@@ -6,32 +6,21 @@ import SidebarComponent from "./SidebarComponent";
 export default function Sidebar({
   sub_id,
   profile,
-  all_messages,
   room_to_last_message,
   set_profile,
   set_match_profile,
   set_match_room_id,
-  set_room_to_last_message,
 }: {
   sub_id: string;
   profile: any;
-  all_messages: Map<string, any[]>;
   room_to_last_message: Map<string, any>;
   match_room_id: string;
   set_profile: React.Dispatch<React.SetStateAction<any>>;
   set_match_profile: React.Dispatch<React.SetStateAction<any>>;
   set_match_room_id: React.Dispatch<React.SetStateAction<any>>;
-  set_room_to_last_message: React.Dispatch<React.SetStateAction<any>>;
 }) {
   const [match_sub_id, set_match_sub_id] = useState("");
   const [rooms, set_rooms] = useState<any[]>([]);
-
-  function is_online(last_seen_date: Date): boolean {
-    const now = new Date();
-    const diff = now.getTime() - last_seen_date.getTime();
-    const diff_minutes = Math.round(diff / 60000);
-    return diff_minutes < 10;
-  }
 
   function get_room_order(profile_rooms: any[] = rooms) {
     const old_matches = profile_rooms.filter(
@@ -77,7 +66,6 @@ export default function Sidebar({
   }, [match_sub_id]);
 
   useEffect(() => {
-    console.log("room_to_last_message: ", room_to_last_message);
     get_room_order();
   }, [room_to_last_message, profile]);
 

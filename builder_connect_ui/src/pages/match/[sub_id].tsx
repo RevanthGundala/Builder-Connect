@@ -60,13 +60,11 @@ export default function Messages() {
             <Sidebar
               sub_id={sub_id}
               profile={profile}
-              all_messages={all_messages}
               set_profile={set_profile}
               set_match_profile={set_match_profile}
               match_room_id={match_room_id}
               set_match_room_id={set_match_room_id}
               room_to_last_message={room_to_last_message}
-              set_room_to_last_message={set_room_to_last_message}
             />
           </div>
           <div className="md:col-span-7 lg:col-span-5 border-r border-gray-300">
