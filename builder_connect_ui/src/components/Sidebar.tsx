@@ -1,36 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { EnvelopeIcon } from "@heroicons/react/24/solid";
 import { view_profile } from "@/libs/functions";
-import useWebSocket from "react-use-websocket";
 import SidebarComponent from "./SidebarComponent";
 
 export default function Sidebar({
   sub_id,
   profile,
   all_messages,
-  match_room_id,
+  room_to_last_message,
   set_profile,
   set_match_profile,
   set_match_room_id,
+  set_room_to_last_message,
 }: {
   sub_id: string;
   profile: any;
   all_messages: Map<string, any[]>;
+  room_to_last_message: Map<string, any>;
   match_room_id: string;
   set_profile: React.Dispatch<React.SetStateAction<any>>;
   set_match_profile: React.Dispatch<React.SetStateAction<any>>;
   set_match_room_id: React.Dispatch<React.SetStateAction<any>>;
+  set_room_to_last_message: React.Dispatch<React.SetStateAction<any>>;
 }) {
   const [match_sub_id, set_match_sub_id] = useState("");
   const [rooms, set_rooms] = useState<any[]>([]);
-
-  //TODO: How to get last message from websocket for all rooms?
-  // possible separate into sidebar component and pass in match_room_id as prop
-  // const { lastJsonMessage } = useWebSocket(
-  //   `ws://${process.env.NEXT_PUBLIC_BASE_URL?.slice(7)}/chat/${match_room_id}`
-  // );
-
-  // console.log("lastJsonMessage", lastJsonMessage);
 
   function is_online(last_seen_date: Date): boolean {
     const now = new Date();
@@ -39,30 +33,29 @@ export default function Sidebar({
     return diff_minutes < 10;
   }
 
-  // function get_last_message(room_id: string): string | any {
-  //   if (
-  //     room_id === match_room_id &&
-  //     lastJsonMessage &&
-  //     lastJsonMessage.chat_type === "TEXT"
-  //   )
-  //     return lastJsonMessage;
-  //   if (all_messages && all_messages.has(room_id)) {
-  //     const room_messages = all_messages.get(room_id) ?? [];
-  //     const last_message =
-  //       room_messages.length > 0
-  //         ? room_messages[room_messages.length - 1]
-  //         : null;
-  //     console.log("last_message: ", last_message);
-  //     return last_message;
-  //   }
-  //   return "Loading...";
-  // }
+  function get_room_order(profile_rooms: any[] = rooms) {
+    const old_matches = profile_rooms.filter(
+      (room: any[2]) => room_to_last_message.get(room[1]) !== undefined
+    );
+    old_matches.sort((a: any[2], b: any[2]) => {
+      const a_last_message = room_to_last_message.get(a[1]);
+      const b_last_message = room_to_last_message.get(b[1]);
+      return (
+        new Date(b_last_message?.created_at).getTime() -
+        new Date(a_last_message?.created_at).getTime()
+      );
+    });
+    set_rooms((prev) => [
+      ...old_matches,
+      ...prev.filter((room) => !old_matches.includes(room)),
+    ]);
+  }
 
-  async function get_profile(id = sub_id) {
+  async function get_profile(id: string = sub_id) {
     const profile_data = await view_profile(id, profile);
     id === sub_id ? set_profile(profile_data) : set_match_profile(profile_data);
     if (id === sub_id && profile_data?.matches.length > 0) {
-      const rooms = await Promise.all(
+      const profile_rooms = await Promise.all(
         profile_data?.matches.map(async (room: any) => {
           const match_id = room.user_sub_ids[0];
           const url = process.env.NEXT_PUBLIC_BASE_URL + `/view/${match_id}`;
@@ -71,7 +64,7 @@ export default function Sidebar({
           return [match, room.room_id];
         })
       );
-      set_rooms(rooms); // rooms = [match_profile, room_id]
+      set_rooms(profile_rooms);
     }
   }
 
@@ -83,19 +76,10 @@ export default function Sidebar({
     get_profile(match_sub_id);
   }, [match_sub_id]);
 
-  // useEffect(() => {
-  //   rooms.sort((a: any[], b: any[]) => {
-  //     const a_last_message = get_last_message(a[1]); // a[1] = a_room_id
-  //     const b_last_message = get_last_message(b[1]);
-  //     if (a_last_message && b_last_message) {
-  //       return (
-  //         new Date(b_last_message.created_at).getTime() -
-  //         new Date(a_last_message.created_at).getTime()
-  //       );
-  //     }
-  //     return 0;
-  //   });
-  // }, [lastJsonMessage, rooms]);
+  useEffect(() => {
+    console.log("room_to_last_message: ", room_to_last_message);
+    get_room_order();
+  }, [room_to_last_message, profile]);
 
   return (
     <div>
@@ -104,7 +88,7 @@ export default function Sidebar({
           <SidebarComponent
             key={index}
             room={room}
-            last_message={all_messages.get(room[1])?.slice(-1)[0]}
+            last_message={room_to_last_message.get(room[1])}
             match_sub_id={match_sub_id}
             set_match_sub_id={set_match_sub_id}
             set_match_room_id={set_match_room_id}

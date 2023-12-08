@@ -10,12 +10,14 @@ export default function MessageComponent({
   sub_id,
   room_id,
   messages,
+  set_room_to_last_message,
 }: {
   profile: any;
   match_profile: any;
   sub_id: string;
   room_id: string;
   messages: any[];
+  set_room_to_last_message: React.Dispatch<React.SetStateAction<any>>;
 }) {
   const [text, set_text] = useState("");
   const [is_typing, set_is_typing] = useState(false);
@@ -30,14 +32,15 @@ export default function MessageComponent({
   useEffect(() => {
     if (lastJsonMessage && lastJsonMessage.chat_type === "TEXT") {
       set_socket_messages((prev) => [...prev, lastJsonMessage]);
+      set_room_to_last_message((prev: Map<string, any>) => {
+        return new Map(prev.set(room_id, lastJsonMessage));
+      });
     }
   }, [lastJsonMessage]);
 
   useEffect(() => {
     set_socket_messages(messages);
   }, [room_id]);
-
-  // console.log("lastJsonMessage", lastJsonMessage);
 
   function handle_typing(mode: string) {
     mode === "IN" ? set_is_typing(true) : set_is_typing(false);
