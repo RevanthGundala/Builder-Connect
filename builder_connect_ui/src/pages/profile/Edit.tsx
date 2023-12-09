@@ -1,8 +1,8 @@
 import ProfileComponent from "@/components/ProfileComponent";
 import { NextRouter, useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
 import { useLocalStorage } from "usehooks-ts";
+import dynamic from "next/dynamic";
 import ParticleBackground from "@/components/ParticleBackground";
 
 export default function Edit() {
@@ -24,6 +24,9 @@ export default function Edit() {
   const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
   const [is_connected, set_is_connected] = useState(false);
   const [is_loading, set_is_loading] = useState(false);
+  const Navbar = dynamic(() => import("../../components/Navbar"), {
+    ssr: false,
+  });
 
   async function edit_profile(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

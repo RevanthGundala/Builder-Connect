@@ -9,7 +9,7 @@ import {
 export default function Profile({ profile }: { profile: any }) {
   const [image_error, set_image_error] = useState(false);
   return (
-    <div className="w-fit h-fit bg-white rounded-lg shadow-md">
+    <div className="h-fit w-72 bg-white rounded-lg shadow-md">
       <div className="flex flex-row justify-center items-center pt-4 px-4">
         <img
           src={image_error ? "/images/default_user.png" : profile?.image_url}

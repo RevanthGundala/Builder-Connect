@@ -59,13 +59,9 @@ pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> H
     
     let mut user_right_swipes = user.right_swipes.unwrap();
     user_right_swipes.push(other_user_id.clone());
-
-    let mut cannot_match = user.cannot_match.unwrap();
-    cannot_match.push(other_user_id.clone());
     
     let mut updated_user = User{
         right_swipes: Some(user_right_swipes),
-        cannot_match: Some(cannot_match),
         ..user
     };
     if match_exists(&other_user, &user_id) {
@@ -77,17 +73,23 @@ pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> H
         match res {
             Ok(_) => {
                 let mut user_matches = updated_user.matches.unwrap();
+                let mut user_cannot_match = updated_user.cannot_match.unwrap();
                 user_matches.push(Room::new(uuid, other_user_id.clone()));
+                user_cannot_match.push(other_user_id.clone());
         
                 let mut other_user_matches = other_user.matches.unwrap();
+                let mut other_user_cannot_match = other_user.cannot_match.unwrap();
                 other_user_matches.push(Room::new(uuid, user_id.clone()));
+                other_user_cannot_match.push(user_id.clone());
                 
                 updated_user = User{
                     matches: Some(user_matches),
+                    cannot_match: Some(user_cannot_match),
                     ..updated_user
                 };
                 other_user = User{
                     matches: Some(other_user_matches),
+                    cannot_match: Some(other_user_cannot_match),
                     ..other_user
                 };
                 
@@ -178,6 +180,7 @@ pub async fn recommend_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResp
         // TODO: Figure out rankings
        while recommendations.advance().await.expect("Recommendation Error Loop") {
             let recommended_user: User = bson::from_document(recommendations.deserialize_current().unwrap()).unwrap();
+            println!("{:?}", recommended_user.sub_id.clone().unwrap());
             if !users_cannot_match.contains(&recommended_user.sub_id.clone().unwrap()) {
                 return HttpResponse::Ok().json(recommended_user);
             }

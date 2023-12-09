@@ -181,7 +181,7 @@ pub async fn login_callback_discord(
                                     Ok(user) => {
                                     
                                         HttpResponse::Found()
-                                            .header("Location", format!("{url}/profile/Edit"))
+                                            .header("Location", format!("{url}/profile/View"))
                                             .body(response_body)
                                     },
                                     Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 

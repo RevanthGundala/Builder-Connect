@@ -28,6 +28,7 @@ export default function ProfileComponent({
           onChange={(e) => func(e.target.value)}
           className="w-full text-gray-900 px-3 py-2 border rounded focus:outline-none focus:border-blue-400"
           required={required}
+          maxLength={100}
         />
       ) : (
         <textarea
