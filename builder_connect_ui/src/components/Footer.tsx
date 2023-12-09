@@ -4,7 +4,22 @@ import { ArrowRightCircleIcon } from "@heroicons/react/24/solid";
 export default function Footer() {
   const [email, set_email] = useState("");
 
-  async function submit_email() {}
+  async function submit_email() {
+    try {
+      const url = `${process.env.NEXT_PUBLIC_BASE_URL}/mailing_list/${email}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+      });
+      const resp = await response.json();
+      console.log(resp);
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
   return (
     <footer className="pt-10 bg-cover bg-center relative mx-auto">
@@ -33,7 +48,7 @@ export default function Footer() {
         </section>
         <div className="pt-4">
           <p className="text-white">Let us know what we can do better!</p>
-          <p className="text-white">BuilderConnect@gmail.com </p>
+          <p className="text-white">builder.connect.network@gmail.com </p>
         </div>
       </div>
     </footer>

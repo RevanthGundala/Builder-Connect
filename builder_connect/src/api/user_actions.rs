@@ -93,16 +93,20 @@ pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> H
                 
                 let (updated_user_username, other_user_username) = (updated_user.username.clone(), other_user.username.clone());
                 let (updated_user_email, other_user_email) = (updated_user.email.clone(), other_user.email.clone());
-                let _ = send_email(
-                    updated_user_email,
-                    "You have a new match!".to_string(),
-                    format!("You have a new match with {other_user_username}! You can now chat with them at http://localhost:8080"),
-                ).await.expect("Email error");
-                let _ = send_email(
-                    other_user_email,
-                    "You have a new match!".to_string(),
-                    format!("You have a new match with {updated_user_username}! You can now chat with them at http://localhost:8080"),
-                ).await.expect("Email error");
+                if db.exists_in_mailing_list(&updated_user_email).await {
+                    let _ = send_email(
+                        updated_user_email,
+                        "You have a new match!".to_string(),
+                        format!("You have a new match with {other_user_username}! You can now chat with them at http://localhost:8080"),
+                    ).await.expect("Email error");
+                }
+                if db.exists_in_mailing_list(&other_user_email).await {
+                    let _ = send_email(
+                        other_user_email,
+                        "You have a new match!".to_string(),
+                        format!("You have a new match with {updated_user_username}! You can now chat with them at http://localhost:8080"),
+                    ).await.expect("Email error");
+                }
             },
             Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
         }

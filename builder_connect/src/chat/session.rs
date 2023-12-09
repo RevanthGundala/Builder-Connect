@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::models::message_model::Message;
 use chrono::{DateTime, Utc, Timelike, Duration as ChronoDuration};
 use crate::models::user_model::User;
+use crate::api::user_actions::send_email;
 
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
@@ -157,14 +158,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                         let fut = async move {
                             // check if last message was sent within 5 minutes
                             // if so, don't revord timestamp
-
-                           
                             let user = db.get_user(&input_user_id).await.unwrap();
                             let updated_user = User{
                                 last_seen: Some(Utc::now()),
                                 ..user
                             };
-                            let _ = db.update_user(&input_user_id, updated_user).await.unwrap();
+                            let _ = db.update_user(&input_user_id, updated_user.clone()).await.unwrap();
                             let messages = db.get_messages_by_room_id(&room_id_clone)
                                 .await
                                 .unwrap();
@@ -183,8 +182,13 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                     Utc::now(),
                                     true
                                 );
-                                // println!("Last message: {:?}", last_msg.content);
-                                // println!("Should display {:?}", new_message.content);
+                                if db.exists_in_mailing_list(&updated_user.email).await {
+                                    let _ = send_email(
+                                        updated_user.email,
+                                        "You have a new message!".to_string(),
+                                        format!("You have new messages at http://localhost:8080"),
+                                    ).await.expect("Email error");
+                                }
                             }
                             let _ = db.create_message(new_message).await.unwrap();
                         };

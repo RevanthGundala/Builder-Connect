@@ -194,7 +194,7 @@ impl MongoRepo {
         Ok(res)
     }
 
-    pub async fn exists_in_mailing_list(&self, email: String) -> bool {
+    pub async fn exists_in_mailing_list(&self, email: &String) -> bool {
         let filter = doc! {"email": email};
         let res = self
             .mailing_list
