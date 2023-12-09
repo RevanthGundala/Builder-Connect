@@ -61,8 +61,8 @@ export default function SidebarComponent({
           <span
             className={
               is_online
-                ? "w-4 h-4 bg-green-500 rounded-full"
-                : "w-4 h-4 bg-red-500 rounded-full"
+                ? "w-2 h-2 bg-green-500 rounded-full absolute"
+                : "w-2 h-2 bg-red-500 rounded-full absolute"
             }
           ></span>
         </div>

@@ -2,6 +2,7 @@ mod api;
 mod models;
 mod repository;
 mod chat;
+use api::email_api::{add_to_mailing_list, delete_from_mailing_list, send_email};
 use serde::{Deserialize, Serialize};
 use actix_web::cookie::{ SameSite };
 use actix_session::{ SessionMiddleware, Session };
@@ -28,9 +29,6 @@ pub struct GoogleOAuthClient {
 pub struct DiscordOAuthClient{
     client: BasicClient,
 }
-
-// Fix time for frontend
-// seen notification
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "lowercase")] 
@@ -135,6 +133,9 @@ async fn main() -> std::io::Result<()> {
             .service(delete_messages)
             .service(get_conversation_by_id)
             .service(start_chat_server)
+            .service(add_to_mailing_list)
+            .service(delete_from_mailing_list)
+            .service(send_email)
 
     })
     .bind(("127.0.0.1", 8080))?

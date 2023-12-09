@@ -10,6 +10,9 @@ extern crate dotenv;
 use dotenv::dotenv;
 use reqwest::{Response, header::HeaderValue};
 use mongodb::bson::{self, doc, Uuid};
+use lettre::message::header::ContentType;
+use lettre::transport::smtp::authentication::Credentials;
+use lettre::{Message, SmtpTransport, Transport};
 
 #[put("/swipe_left/{sub_id}/{other_sub_id}")]
 pub async fn swipe_left(db: Data<MongoRepo>, path: Path<(String, String)>) -> HttpResponse {
@@ -87,6 +90,19 @@ pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> H
                     matches: Some(other_user_matches),
                     ..other_user
                 };
+                
+                let (updated_user_username, other_user_username) = (updated_user.username.clone(), other_user.username.clone());
+                let (updated_user_email, other_user_email) = (updated_user.email.clone(), other_user.email.clone());
+                let _ = send_email(
+                    updated_user_email,
+                    "You have a new match!".to_string(),
+                    format!("You have a new match with {other_user_username}! You can now chat with them at http://localhost:8080"),
+                ).await.expect("Email error");
+                let _ = send_email(
+                    other_user_email,
+                    "You have a new match!".to_string(),
+                    format!("You have a new match with {updated_user_username}! You can now chat with them at http://localhost:8080"),
+                ).await.expect("Email error");
             },
             Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
         }
@@ -200,3 +216,39 @@ pub async fn generate_embedding(text: &String) -> Result<Vec<f32>, reqwest::Erro
         Err(_) => Err(reqwest::Error::from(response.unwrap_err())),
     }
 }   
+
+pub async fn send_email(
+    to: String,
+    subject: String,
+    body: String) -> Result<(), reqwest::Error> { 
+    let email_username = match env::var("BUILDER_CONNECT_EMAIL") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading email username"),
+    };
+    let email = Message::builder()
+        .from(format!("<{email_username}>").parse().unwrap())
+        .to(format!("<{to}>").parse().unwrap())
+        .subject(subject)
+        .header(ContentType::TEXT_PLAIN)
+        .body(body)
+        .unwrap();
+    let email_password = match env::var("BUILDER_CONNECT_EMAIL_PASSWORD") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading email password"),
+    };
+
+    let creds = Credentials::new(email_username, email_password);
+
+    // Open a remote connection to gmail
+    let mailer = SmtpTransport::relay("smtp.gmail.com")
+        .unwrap()
+        .credentials(creds)
+        .build();
+
+    // Send the email
+    match mailer.send(&email) {
+        Ok(_) => println!("Email sent successfully!"),
+        Err(e) => panic!("Could not send email: {e:?}"),
+    }
+    Ok(())
+}

@@ -15,6 +15,7 @@ use mongodb::bson::extjson::de::Error::DeserializationError;
 pub struct MongoRepo {
     pub users: Collection<User>,
     pub messages: Collection<Message>,
+    pub mailing_list: Collection<String>,
 }
 
 impl MongoRepo {
@@ -28,6 +29,7 @@ impl MongoRepo {
         let db = client.database("BuilderConnectDB");
         let users: Collection<User> = db.collection("Users");
         let messages: Collection<Message> = db.collection("Messages");
+        let mailing_list: Collection<String> = db.collection("MailingList");
         let index_model = IndexModel::builder()
             .keys(doc! {"sub_id": 1})
             .options(None)
@@ -36,7 +38,7 @@ impl MongoRepo {
         if res.index_name != "sub_id_1" {
             panic!("PANIC!! Error creating index");
         }
-        MongoRepo { users, messages }
+        MongoRepo { users, messages, mailing_list }
     }
 
     pub async fn create_user(
@@ -167,5 +169,42 @@ impl MongoRepo {
             messages.push(cursor.deserialize_current().expect("Deserialization error"));
         }
         Ok(messages)
+    }
+
+    // ------------------- Mailing List ------------------- //
+
+    pub async fn add_to_mailing_list(&self, email: String) -> Result<InsertOneResult, Error> {
+        let res = self
+            .mailing_list
+            .insert_one(email, None)
+            .await
+            .ok()
+            .expect("Error adding to mailing list");
+        Ok(res)
+    }
+
+    pub async fn delete_from_mailing_list(&self, email: String) -> Result<DeleteResult, Error> {
+        let filter = doc! {"email": email};
+        let res = self
+            .mailing_list
+            .delete_one(filter, None)
+            .await
+            .ok()
+            .expect("Error deleting from mailing list");
+        Ok(res)
+    }
+
+    pub async fn exists_in_mailing_list(&self, email: String) -> bool {
+        let filter = doc! {"email": email};
+        let res = self
+            .mailing_list
+            .find_one(filter, None)
+            .await
+            .ok()
+            .expect("Error checking mailing list");
+        match res {
+            Some(_) => true,
+            None => false,
+        }
     }
 }

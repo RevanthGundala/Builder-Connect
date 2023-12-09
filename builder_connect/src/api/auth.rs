@@ -44,7 +44,6 @@ pub struct DiscordClaims {
 
 
 pub fn load_google_env_variables() -> [String; 5]{
-    dotenv().ok();
     let client_id = match env::var("GOOGLE_OAUTH_CLIENT_ID") {
         Ok(v) => v.to_string(),
         Err(_) => format!("Error loading env variable"),
@@ -70,7 +69,6 @@ pub fn load_google_env_variables() -> [String; 5]{
 }
 
 pub fn load_discord_env_variables() -> [String; 5]{
-    dotenv().ok();
     let client_id = match env::var("DISCORD_OAUTH_CLIENT_ID") {
         Ok(v) => v.to_string(),
         Err(_) => format!("Error loading env variable"),

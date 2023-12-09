@@ -101,7 +101,7 @@ export default function Edit() {
               text={"Email"}
               placeholder=""
               func={set_email}
-              required={false}
+              required={true}
               value={profile?.email}
               descriptive={false}
             />
