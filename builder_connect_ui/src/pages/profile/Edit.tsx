@@ -84,7 +84,7 @@ export default function Edit() {
   return (
     <>
       <ParticleBackground />
-      <Navbar />
+      <Navbar sub_id={sub_id} set_sub_id={set_sub_id} />
       <div className="pt-12 bg-cover bg-center relative mx-auto flex flex-col items-center">
         <div className="bg-white p-8 rounded shadow-md w-96">
           <h1 className="text-black text-center text-2xl mb-4">Edit Profile</h1>

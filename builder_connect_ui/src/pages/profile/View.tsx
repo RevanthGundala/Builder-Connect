@@ -22,7 +22,7 @@ export default function View() {
   return (
     <>
       <ParticleBackground />
-      <Navbar />
+      <Navbar sub_id={sub_id} set_sub_id={set_sub_id} />
       {sub_id === "" ? (
         <div>Loading...</div>
       ) : (

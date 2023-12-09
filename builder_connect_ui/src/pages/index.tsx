@@ -1,40 +1,35 @@
 import React from "react";
-import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
 import { NextRouter, useRouter } from "next/router";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { useLocalStorage } from "usehooks-ts";
 import ParticleBackground from "@/components/ParticleBackground";
+import dynamic from "next/dynamic";
 
 const LandingPage = () => {
   const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
+  const Navbar = dynamic(() => import("../components/Navbar"), {
+    ssr: false,
+  });
 
   return (
     <>
       <ParticleBackground />
-      <Navbar />
+      <Navbar sub_id={sub_id} set_sub_id={set_sub_id} />
       <header className="pt-24 bg-cover bg-center relative mx-auto">
         <div className="container mx-auto relative z-10 text-center">
           <h1 className="text-7xl text-white">Builder Connect</h1>
           <p className="text-2xl text-gray-400 mt-4">
             A platform dedicated to connecting the next generation of builders
           </p>
-          {sub_id !== "" ? (
-            <Link
-              href={`/Swipe`}
-              className="mt-6 inline-block bg-white text-black rounded-full py-3 px-8 hover:opacity-60"
-            >
-              Get Started
-            </Link>
-          ) : (
-            <Link
-              href="/SignIn"
-              className="mt-6 inline-block bg-white text-black rounded-full py-3 px-8 hover:opacity-60"
-            >
-              Get Started
-            </Link>
-          )}
+          <Link
+            href={`/Swipe`}
+            className="mt-6 inline-block bg-white text-black rounded-full py-3 px-8 hover:opacity-60"
+            shallow={true}
+          >
+            Get Started
+          </Link>
         </div>
       </header>
 

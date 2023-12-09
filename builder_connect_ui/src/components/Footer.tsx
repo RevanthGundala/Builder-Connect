@@ -6,13 +6,10 @@ export default function Footer() {
 
   async function submit_email() {
     try {
+      console.log("email", email);
       const url = `${process.env.NEXT_PUBLIC_BASE_URL}/mailing_list/${email}`;
       const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          accept: "application/json",
-        },
+        credentials: "include",
       });
       const resp = await response.json();
       console.log(resp);
