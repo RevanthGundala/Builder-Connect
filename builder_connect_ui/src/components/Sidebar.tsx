@@ -10,6 +10,7 @@ export default function Sidebar({
   set_profile,
   set_match_profile,
   set_match_room_id,
+  set_room_to_last_message,
 }: {
   sub_id: string;
   profile: any;
@@ -18,6 +19,7 @@ export default function Sidebar({
   set_profile: React.Dispatch<React.SetStateAction<any>>;
   set_match_profile: React.Dispatch<React.SetStateAction<any>>;
   set_match_room_id: React.Dispatch<React.SetStateAction<any>>;
+  set_room_to_last_message: React.Dispatch<React.SetStateAction<any>>;
 }) {
   const [match_sub_id, set_match_sub_id] = useState("");
   const [rooms, set_rooms] = useState<any[]>([]);
@@ -77,10 +79,11 @@ export default function Sidebar({
           <SidebarComponent
             key={index}
             room={room}
-            last_message={room_to_last_message.get(room[1])}
             match_sub_id={match_sub_id}
             set_match_sub_id={set_match_sub_id}
             set_match_room_id={set_match_room_id}
+            room_to_last_message={room_to_last_message}
+            set_room_to_last_message={set_room_to_last_message}
           />
         ))
       ) : (

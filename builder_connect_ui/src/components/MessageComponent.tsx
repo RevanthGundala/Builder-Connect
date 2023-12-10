@@ -27,19 +27,19 @@ export default function MessageComponent({
     `ws://${process.env.NEXT_PUBLIC_BASE_URL?.slice(7)}/chat/${room_id}`
   );
 
-  useEffect(() => {
-    if (
-      lastJsonMessage &&
-      lastJsonMessage.chat_type === "TEXT" &&
-      JSON.stringify(lastJsonMessage) !==
-        JSON.stringify(socket_messages.slice(-1)[0])
-    ) {
-      set_socket_messages((prev) => [...prev, lastJsonMessage]);
-      set_room_to_last_message(
-        (prev: Map<string, any>) => new Map(prev.set(room_id, lastJsonMessage))
-      );
-    }
-  }, [lastJsonMessage]);
+  //   useEffect(() => {
+  //     if (
+  //       lastJsonMessage &&
+  //       lastJsonMessage.chat_type === "TEXT" &&
+  //       JSON.stringify(lastJsonMessage) !==
+  //         JSON.stringify(socket_messages.slice(-1)[0])
+  //     ) {
+  //       set_socket_messages((prev) => [...prev, lastJsonMessage]);
+  //       set_room_to_last_message(
+  //         (prev: Map<string, any>) => new Map(prev.set(room_id, lastJsonMessage))
+  //       );
+  //     }
+  //   }, [lastJsonMessage]);
 
   useEffect(() => {
     set_socket_messages(messages);

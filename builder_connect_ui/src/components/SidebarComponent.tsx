@@ -1,23 +1,29 @@
 import React, { useEffect, useState } from "react";
-
+import useWebSocket from "react-use-websocket";
 export default function SidebarComponent({
   room,
   match_sub_id,
-  last_message,
+  room_to_last_message,
   set_match_sub_id,
   set_match_room_id,
+  set_room_to_last_message,
 }: {
   room: any;
   match_sub_id: string;
-  last_message: any;
+  room_to_last_message: Map<string, any>;
   set_match_sub_id: React.Dispatch<React.SetStateAction<string>>;
   set_match_room_id: React.Dispatch<React.SetStateAction<string>>;
+  set_room_to_last_message: React.Dispatch<React.SetStateAction<any>>;
 }) {
   const [image_error, set_image_error] = useState(false);
   const [is_online, set_is_online] = useState(false);
 
+  const { lastJsonMessage } = useWebSocket(
+    `ws://${process.env.NEXT_PUBLIC_BASE_URL?.slice(7)}/chat/${room[1]}`
+  );
+
   function check_is_online(last_seen: string | undefined) {
-    if (!last_seen) return;
+    if (!last_seen || last_seen === "") return;
     try {
       const now = new Date();
       const last_seen_date = new Date(last_seen);
@@ -29,6 +35,19 @@ export default function SidebarComponent({
       set_is_online(false);
     }
   }
+
+  useEffect(() => {
+    if (
+      lastJsonMessage &&
+      lastJsonMessage.chat_type === "TEXT" &&
+      JSON.stringify(lastJsonMessage) !==
+        JSON.stringify(room_to_last_message.get(room[1]))
+    ) {
+      set_room_to_last_message(
+        (prev: Map<string, any>) => new Map(prev.set(room[1], lastJsonMessage))
+      );
+    }
+  }, [lastJsonMessage]);
 
   useEffect(() => {
     room && room[0] && room[0].image_url
@@ -68,7 +87,7 @@ export default function SidebarComponent({
           />
           <div className="flex flex-col">
             <p>{room[0].username}</p>
-            <p>{last_message?.content ?? "New Match!"}</p>
+            <p>{room_to_last_message.get(room[1])?.content ?? "New Match!"}</p>
           </div>
           <span
             className={
@@ -79,8 +98,10 @@ export default function SidebarComponent({
           ></span>
         </div>
         <div className="flex flex-row px-2">
-          {last_message?.created_at
-            ? new Date(last_message?.created_at).toLocaleString(undefined, {
+          {room_to_last_message.get(room[1])?.created_at
+            ? new Date(
+                room_to_last_message.get(room[1])?.created_at
+              ).toLocaleString(undefined, {
                 hour: "numeric",
                 minute: "numeric",
               })
