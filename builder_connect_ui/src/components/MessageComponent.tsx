@@ -5,14 +5,12 @@ import Conversation from "@/components/Conversation";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
 export default function MessageComponent({
-  profile,
   match_profile,
   sub_id,
   room_id,
   messages,
   set_room_to_last_message,
 }: {
-  profile: any;
   match_profile: any;
   sub_id: string;
   room_id: string;
@@ -30,11 +28,16 @@ export default function MessageComponent({
   );
 
   useEffect(() => {
-    if (lastJsonMessage && lastJsonMessage.chat_type === "TEXT") {
+    if (
+      lastJsonMessage &&
+      lastJsonMessage.chat_type === "TEXT" &&
+      JSON.stringify(lastJsonMessage) !==
+        JSON.stringify(socket_messages.slice(-1)[0])
+    ) {
       set_socket_messages((prev) => [...prev, lastJsonMessage]);
-      set_room_to_last_message((prev: Map<string, any>) => {
-        return new Map(prev.set(room_id, lastJsonMessage));
-      });
+      set_room_to_last_message(
+        (prev: Map<string, any>) => new Map(prev.set(room_id, lastJsonMessage))
+      );
     }
   }, [lastJsonMessage]);
 
@@ -61,6 +64,12 @@ export default function MessageComponent({
       set_text("");
     }
   }
+
+  useEffect(() => {
+    match_profile && match_profile.image_url
+      ? set_image_error(false)
+      : set_image_error(true);
+  }, [match_profile, match_profile?.image_url]);
 
   useEffect(() => {
     if (ref.current) {

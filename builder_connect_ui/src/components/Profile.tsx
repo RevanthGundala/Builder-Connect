@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BriefcaseIcon,
   AcademicCapIcon,
@@ -8,6 +8,13 @@ import {
 
 export default function Profile({ profile }: { profile: any }) {
   const [image_error, set_image_error] = useState(false);
+
+  useEffect(() => {
+    profile && profile.image_url
+      ? set_image_error(false)
+      : set_image_error(true);
+  }, [profile, profile?.image_url]);
+
   return (
     <div className="h-fit w-72 bg-white rounded-lg shadow-md">
       <div className="flex flex-row justify-center items-center pt-4 px-4">
@@ -23,13 +30,11 @@ export default function Profile({ profile }: { profile: any }) {
           {profile?.username}, {profile?.age}
         </h2>
         <div className="text-gray-600 text-sm space-y-1 pt-2">
-          {profile?.website ? (
+          {profile?.website && (
             <div className="flex flex-row space-x-1">
               <LinkIcon className="h-4 w-4" />
               <p>{profile.website}</p>
             </div>
-          ) : (
-            <div></div>
           )}
           <div className="flex flex-row space-x-1">
             <AcademicCapIcon className="h-4 w-4" />

@@ -174,7 +174,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                 Utc::now(),
                                 false
                             );
-                            if messages.last().unwrap().created_at < Utc::now() - ChronoDuration::minutes(5) {
+                            if messages.len() > 0 && messages.last().unwrap().created_at < Utc::now() - ChronoDuration::minutes(5) {
                                 new_message = Message::new(
                                     input_room_id,
                                     input_user_id,

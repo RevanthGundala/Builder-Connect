@@ -16,21 +16,33 @@ export default function SidebarComponent({
   const [image_error, set_image_error] = useState(false);
   const [is_online, set_is_online] = useState(false);
 
-  function check_is_online(last_seen_date: Date | undefined) {
-    if (!last_seen_date) return;
-    const now = new Date();
-    const diff = now.getTime() - last_seen_date.getTime();
-    const diff_minutes = Math.round(diff / 60000);
-    diff_minutes < 10 ? set_is_online(true) : set_is_online(false);
+  function check_is_online(last_seen: string | undefined) {
+    if (!last_seen) return;
+    try {
+      const now = new Date();
+      const last_seen_date = new Date(last_seen);
+      const diff = now.getTime() - last_seen_date.getTime();
+      const diff_minutes = Math.round(diff / 60000);
+      diff_minutes < 5 ? set_is_online(true) : set_is_online(false);
+    } catch (e) {
+      console.log(e);
+      set_is_online(false);
+    }
   }
 
   useEffect(() => {
-    check_is_online(new Date(room[0].last_seen));
+    room && room[0] && room[0].image_url
+      ? set_image_error(false)
+      : set_image_error(true);
+  }, [room, room[0]?.image_url]);
+
+  useEffect(() => {
+    check_is_online(room[0].last_seen);
     const interval = setInterval(() => {
       check_is_online(room[0].last_seen);
     }, 10000);
     return () => clearInterval(interval);
-  });
+  }, []);
 
   return (
     <div

@@ -24,12 +24,11 @@ export default function View() {
 
   useEffect(() => {
     if (
-      profile &&
       !alert_shown &&
-      profile?.project_interests === "" &&
-      profile?.personality_interests === ""
+      (profile?.project_interests === "" || profile?.reason === "")
     ) {
       window.alert("You must fill out your profile before you can swipe!");
+      set_alert_shown(true);
     }
   }, [alert_shown, profile]);
 
