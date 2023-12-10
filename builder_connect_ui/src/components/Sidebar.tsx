@@ -69,7 +69,6 @@ export default function Sidebar({
 
   useEffect(() => {
     get_room_order();
-    console.log("room to last message: ", room_to_last_message);
   }, [room_to_last_message, profile]);
 
   return (

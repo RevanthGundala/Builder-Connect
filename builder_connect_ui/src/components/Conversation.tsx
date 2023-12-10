@@ -45,27 +45,29 @@ export default function Conversation({
 }) {
   return (
     <div className="p-4 space-y-4">
-      {messages.map((message: any, index: number) => {
-        return (
-          <ConversationItem
-            key={index}
-            right={message.user_sub_id === sub_id}
-            content={message.content}
-            created_at={
-              message.should_display
-                ? new Date(message.created_at).toLocaleString(undefined, {
-                    weekday: "short",
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "numeric",
-                  })
-                : ""
-            }
-          />
-        );
-      })}
+      {messages &&
+        messages.length > 0 &&
+        messages.map((message: any, index: number) => {
+          return (
+            <ConversationItem
+              key={index}
+              right={message.user_sub_id === sub_id}
+              content={message.content}
+              created_at={
+                message.should_display
+                  ? new Date(message.created_at).toLocaleString(undefined, {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "numeric",
+                    })
+                  : ""
+              }
+            />
+          );
+        })}
     </div>
   );
 }

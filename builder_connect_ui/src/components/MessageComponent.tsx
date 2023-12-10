@@ -8,42 +8,28 @@ export default function MessageComponent({
   match_profile,
   sub_id,
   room_id,
-  messages,
+  all_messages,
+  room_to_last_message,
   set_room_to_last_message,
+  set_all_messages,
 }: {
   match_profile: any;
   sub_id: string;
   room_id: string;
-  messages: any[];
+  all_messages: Map<string, any[]>;
+  room_to_last_message: Map<string, any>;
   set_room_to_last_message: React.Dispatch<React.SetStateAction<any>>;
+  set_all_messages: React.Dispatch<React.SetStateAction<any>>;
 }) {
   const [text, set_text] = useState("");
   const [is_typing, set_is_typing] = useState(false);
   const [image_error, set_image_error] = useState(false);
-  const [socket_messages, set_socket_messages] = useState<any[]>(messages);
+  const [socket_messages, set_socket_messages] = useState<any[]>();
   const ref = useRef<HTMLDivElement | null>(null);
 
-  const { sendJsonMessage, lastJsonMessage } = useWebSocket(
+  const { lastJsonMessage, sendJsonMessage } = useWebSocket(
     `ws://${process.env.NEXT_PUBLIC_BASE_URL?.slice(7)}/chat/${room_id}`
   );
-
-  //   useEffect(() => {
-  //     if (
-  //       lastJsonMessage &&
-  //       lastJsonMessage.chat_type === "TEXT" &&
-  //       JSON.stringify(lastJsonMessage) !==
-  //         JSON.stringify(socket_messages.slice(-1)[0])
-  //     ) {
-  //       set_socket_messages((prev) => [...prev, lastJsonMessage]);
-  //       set_room_to_last_message(
-  //         (prev: Map<string, any>) => new Map(prev.set(room_id, lastJsonMessage))
-  //       );
-  //     }
-  //   }, [lastJsonMessage]);
-
-  useEffect(() => {
-    set_socket_messages(messages);
-  }, [room_id]);
 
   function handle_typing(mode: string) {
     mode === "IN" ? set_is_typing(true) : set_is_typing(false);
@@ -77,6 +63,21 @@ export default function MessageComponent({
     }
   }, [socket_messages]);
 
+  useEffect(() => {
+    if (all_messages.get(room_id)) {
+      set_socket_messages(all_messages.get(room_id));
+    }
+  }, [room_id, all_messages]);
+
+  useEffect(() => {
+    if (lastJsonMessage && lastJsonMessage.chat_type === "TEXT") {
+      set_socket_messages((prev: any[] | undefined) => [
+        ...(prev ?? []),
+        lastJsonMessage,
+      ]);
+    }
+  }, [lastJsonMessage]);
+
   return (
     <>
       <div className="flex flex-col bg-gray-200 w-5/6 mx-auto my-8">
@@ -102,7 +103,7 @@ export default function MessageComponent({
             ref={ref}
             className="flex flex-col border-b border-gray-400 max-h-[600px] min-h-[600px] overflow-auto"
           >
-            <Conversation messages={socket_messages} sub_id={sub_id} />
+            <Conversation messages={socket_messages ?? []} sub_id={sub_id} />
           </main>
         </div>
         <footer className="flex flex-col">

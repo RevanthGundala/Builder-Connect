@@ -19,10 +19,12 @@ export default function Messages() {
   const [room_to_last_message, set_room_to_last_message] = useState(new Map());
 
   useEffect(() => {
-    if (profile) {
-      profile.matches
-        .flatMap((room: any) => room.room_id)
-        .forEach(async (room_id: string) => {
+    fetch_data();
+
+    async function fetch_data() {
+      if (profile) {
+        for (const room of profile.matches) {
+          const room_id = room.room_id;
           const messages = await fetch_room_data(room_id);
           set_all_messages((prev) => {
             return new Map(prev.set(room_id, messages));
@@ -31,7 +33,8 @@ export default function Messages() {
             const last_message = messages.slice(-1)[0];
             return new Map(prev.set(room_id, last_message));
           });
-        });
+        }
+      }
     }
 
     async function fetch_room_data(room_id: string) {
@@ -45,7 +48,9 @@ export default function Messages() {
         console.log(e);
       }
     }
-  }, [profile, match_profile]);
+
+    console.log("room_id: ", match_room_id);
+  }, [profile, match_profile, match_room_id]);
 
   return (
     <>
@@ -75,8 +80,10 @@ export default function Messages() {
                 match_profile={match_profile}
                 sub_id={sub_id}
                 room_id={match_room_id}
-                messages={all_messages.get(match_room_id) ?? []}
+                all_messages={all_messages}
+                room_to_last_message={room_to_last_message}
                 set_room_to_last_message={set_room_to_last_message}
+                set_all_messages={set_all_messages}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full">
