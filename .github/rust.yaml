@@ -1,4 +1,4 @@
-name: Rust
+name: Builder Connect
 
 on:
   push:
@@ -6,16 +6,13 @@ on:
   pull_request:
     branches: ["main"]
 
-defaults:
-  run:
-    working-directory: ./builder_connect
-
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  backend:
     runs-on: ubuntu-latest
+    working-directory: ./builder_connect
 
     steps:
       - uses: actions/checkout@v3
@@ -23,3 +20,15 @@ jobs:
         run: cargo build --verbose
       - name: Run tests
         run: cargo test --verbose
+    frontend:
+      runs-on: ubuntu-latest
+      working-directory: ./builder_connect_ui
+
+      steps:
+        - uses: actions/checkout@v3
+        - name: Install dependencies
+          run: npm install
+        - name: Build
+          run: npm run build
+        - name: Run tests
+          run: npm run test
