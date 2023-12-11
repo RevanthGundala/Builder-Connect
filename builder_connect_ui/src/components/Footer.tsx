@@ -20,7 +20,7 @@ export default function Footer() {
       console.log(resp);
       if (resp === "Added to mailing list") {
         set_email("");
-        alert("You have been added to the mailing list!");
+        window.alert("You have been added to the mailing list!");
       }
     } catch (e) {
       console.log(e);
