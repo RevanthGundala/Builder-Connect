@@ -5,12 +5,13 @@ use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 use std::env;
 
-#[get("/mailing_list/{email}")]
+#[post("/mailing_list/{email}")]
 pub async fn add_to_mailing_list(
-    email: web::Json<String>,
+    email: Path<String>,
     db: web::Data<MongoRepo>,
 ) -> impl Responder {
     let res = db.add_to_mailing_list(email.into_inner()).await;
+    println!("{:?}", res);
     match res {
         Ok(_) => HttpResponse::Ok().body("Added to mailing list"),
         Err(_) => HttpResponse::InternalServerError().body("Error adding to mailing list"),
@@ -19,7 +20,7 @@ pub async fn add_to_mailing_list(
 
 #[delete("/mailing_list/{email}")]
 pub async fn delete_from_mailing_list(
-    email: web::Json<String>,
+    email: Path<String>,
     db: web::Data<MongoRepo>,
 ) -> impl Responder {
     let res = db.delete_from_mailing_list(email.into_inner()).await;

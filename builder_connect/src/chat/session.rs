@@ -186,7 +186,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                     let _ = send_email(
                                         updated_user.email,
                                         "You have a new message!".to_string(),
-                                        format!("You have new messages at http://localhost:8080"),
+                                        format!("You have new messages at http://localhost:3000\nIf you would like to stop receiving these emails, please unsubscribe at http://localhost:3000/unsubscribe"),
                                     ).await.expect("Email error");
                                 }
                             }

@@ -2,7 +2,7 @@ use std::env;
 extern crate dotenv;
 use dotenv::dotenv;
 use mongodb::{
-    bson::{self, extjson::de::Error, doc},
+    bson::{self, extjson::de::Error, doc, oid::ObjectId},
     results::InsertOneResult,
     Client, Collection,
 };
@@ -11,11 +11,19 @@ use crate::models::message_model::Message;
 use mongodb::results::{UpdateResult, DeleteResult};
 use mongodb::IndexModel;
 use mongodb::bson::extjson::de::Error::DeserializationError;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Email {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    id: Option<ObjectId>,
+    email: String,
+}
 
 pub struct MongoRepo {
     pub users: Collection<User>,
     pub messages: Collection<Message>,
-    pub mailing_list: Collection<String>,
+    pub mailing_list: Collection<Email>,
 }
 
 impl MongoRepo {
@@ -29,7 +37,7 @@ impl MongoRepo {
         let db = client.database("BuilderConnectDB");
         let users: Collection<User> = db.collection("Users");
         let messages: Collection<Message> = db.collection("Messages");
-        let mailing_list: Collection<String> = db.collection("MailingList");
+        let mailing_list: Collection<Email> = db.collection("MailingList");
         let index_model = IndexModel::builder()
             .keys(doc! {"sub_id": 1})
             .options(None)
@@ -174,16 +182,24 @@ impl MongoRepo {
     // ------------------- Mailing List ------------------- //
 
     pub async fn add_to_mailing_list(&self, email: String) -> Result<InsertOneResult, Error> {
+        if self.exists_in_mailing_list(&email).await {
+            return Err(DeserializationError { message: "Email already exists".to_string() });
+        }
+        let new_email = Email { id: Some(ObjectId::new()), email };
         let res = self
             .mailing_list
-            .insert_one(email, None)
-            .await
-            .ok()
-            .expect("Error adding to mailing list");
-        Ok(res)
+            .insert_one(new_email, None)
+            .await;
+        match res {
+            Ok(r) => Ok(r),
+            Err(e) => Err( DeserializationError { message: (e.to_string()) }),
+        }
     }
 
     pub async fn delete_from_mailing_list(&self, email: String) -> Result<DeleteResult, Error> {
+        if !self.exists_in_mailing_list(&email).await {
+            return Err(DeserializationError { message: "Email doesn't exist".to_string() });
+        }
         let filter = doc! {"email": email};
         let res = self
             .mailing_list

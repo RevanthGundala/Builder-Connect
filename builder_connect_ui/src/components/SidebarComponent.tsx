@@ -61,7 +61,7 @@ export default function SidebarComponent({
       check_is_online(room[0].last_seen);
     }, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [is_online]);
 
   return (
     <div

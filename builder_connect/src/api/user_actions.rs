@@ -97,14 +97,14 @@ pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> H
                     let _ = send_email(
                         updated_user_email,
                         "You have a new match!".to_string(),
-                        format!("You have a new match with {other_user_username}! You can now chat with them at http://localhost:8080"),
+                        format!("You have a new match with {other_user_username}! You can now chat with them at http://localhost:3000\nIf you would like to stop receiving these emails, please unsubscribe at http://localhost:3000/unsubscribe"),
                     ).await.expect("Email error");
                 }
                 if db.exists_in_mailing_list(&other_user_email).await {
                     let _ = send_email(
                         other_user_email,
                         "You have a new match!".to_string(),
-                        format!("You have a new match with {updated_user_username}! You can now chat with them at http://localhost:8080"),
+                        format!("You have a new match with {updated_user_username}! You can now chat with them at http://localhost:3000\nIf you would like to stop receiving these emails, please unsubscribe at http://localhost:3000/unsubscribe"),
                     ).await.expect("Email error");
                 }
             },

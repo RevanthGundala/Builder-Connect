@@ -4,15 +4,24 @@ import { ArrowRightCircleIcon } from "@heroicons/react/24/solid";
 export default function Footer() {
   const [email, set_email] = useState("");
 
-  async function submit_email() {
+  async function submit_email(e: any) {
     try {
-      console.log("email", email);
+      e.preventDefault();
       const url = `${process.env.NEXT_PUBLIC_BASE_URL}/mailing_list/${email}`;
-      const response = await fetch(url, {
-        credentials: "include",
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
       });
-      const resp = await response.json();
+      console.log("response: ", res);
+      const resp = await res.text();
       console.log(resp);
+      if (resp === "Added to mailing list") {
+        set_email("");
+        alert("You have been added to the mailing list!");
+      }
     } catch (e) {
       console.log(e);
     }
@@ -35,7 +44,7 @@ export default function Footer() {
               onChange={(e) => set_email(e.target.value)}
             />
             <button
-              className="bg-black font-bold text-white px-5 py-2 rounded-full disabled:opacity-40 hover:opacity-80"
+              className="font-bold text-white px-5 py-2 rounded-full disabled:opacity-40 hover:opacity-80"
               disabled={!email}
               type="submit"
             >
