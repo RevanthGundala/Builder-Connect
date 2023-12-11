@@ -13,11 +13,12 @@ export default function Unsubscribe() {
         credentials: "include",
       });
       console.log("res: ", res);
-      const data = await res.json();
+      const data = await res.text();
       console.log(data);
-      data === "Deleted from mailing list"
-        ? set_unsubscribed(true)
-        : set_unsubscribed(false);
+      if (data === "Deleted from mailing list") {
+        set_sub_id("");
+        set_unsubscribed(true);
+      }
     } catch (err) {
       console.log(err);
     }
