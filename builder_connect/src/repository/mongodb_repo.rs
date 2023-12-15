@@ -33,6 +33,7 @@ impl MongoRepo {
             Ok(v) => v.to_string(),
             Err(_) => format!("Error loading env variable"),
         };
+        let uri = "mongodb+srv://RevanthGundala:uJyFq49UKPp1SQUE@builderconnectdb.214izk0.mongodb.net/?retryWrites=true&w=majority".to_string();
         let client = Client::with_uri_str(uri).await.unwrap();
         let db = client.database("BuilderConnectDB");
         let users: Collection<User> = db.collection("Users");

@@ -42,6 +42,16 @@ pub struct DiscordClaims {
     pub email: String,
 }
 
+// Dockerfile reads from .env file
+trait RemovableQuotes {
+    fn remove_quotes(&self) -> String;
+}
+
+impl RemovableQuotes for String {
+    fn remove_quotes(&self) -> String {
+        self.replace("\"", "")
+    }
+}
 
 pub fn load_google_env_variables() -> [String; 5]{
     let client_id = match env::var("GOOGLE_OAUTH_CLIENT_ID") {
@@ -53,7 +63,7 @@ pub fn load_google_env_variables() -> [String; 5]{
         Err(_) => format!("Error loading env variable"),
     };
     let auth_url = match env::var("GOOGLE_OAUTH_AUTH_URL") {
-        Ok(v) => v.to_string(),
+        Ok(v) => v.to_string().remove_quotes(),
         Err(_) => format!("Error loading env variable"),
     };
     let token_url = match env::var("GOOGLE_OAUTH_TOKEN_URL") {
