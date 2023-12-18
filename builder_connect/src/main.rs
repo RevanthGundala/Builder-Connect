@@ -10,7 +10,6 @@ use actix_session::config::{ BrowserSession, CookieContentSecurity };
 use actix_session::storage::{ RedisActorSessionStore };
 use actix_web::{web::{self, Data}, App, HttpServer, http, cookie::Key};
 use api::{user_api::*, auth::*, user_actions::*, chat_api::{*, self}};
-use crate::api::auth;
 use crate::api::chat_api::get_conversation_by_id;
 use chat::socket::ChatServer;
 use repository::mongodb_repo::MongoRepo;
@@ -43,7 +42,6 @@ impl ClientType{
     pub fn new_google_data() -> Data<GoogleOAuthClient> {
         let [client_id, client_secret, auth_url, token_url, redirect_url] = load_google_env_variables();
         println!("{auth_url}");
-        println!("Auth URL: {}", auth_url);
         let client = BasicClient::new(
             ClientId::new(client_id),
             Some(ClientSecret::new(client_secret)),

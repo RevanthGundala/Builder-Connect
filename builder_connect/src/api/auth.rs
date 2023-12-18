@@ -42,7 +42,6 @@ pub struct DiscordClaims {
     pub email: String,
 }
 
-// Dockerfile reads from .env file
 trait RemovableQuotes {
     fn remove_quotes(&self) -> String;
 }
@@ -52,6 +51,7 @@ impl RemovableQuotes for String {
         self.replace("\"", "")
     }
 }
+
 
 pub fn load_google_env_variables() -> [String; 5]{
     let client_id = match env::var("GOOGLE_OAUTH_CLIENT_ID") {
@@ -174,8 +174,13 @@ pub async fn login_callback_discord(
                 let res_text = res.text().await.unwrap();
                 let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
                 println!("{:?}", claims);
-                session.insert("sub_id", claims.id.clone()).unwrap();
-                let url = String::from("http://localhost:3000");
+                session.insert("sub_id", claims.id.clone()).expect("failed to insert sub_id into session");
+                let url = if in_production() {
+                    env::var("PRODUCTION_URL").unwrap().to_string()
+                }
+                else{
+                    "http://localhost:3000".to_string()
+                };
                 let response_body = serde_json::to_string(&serde_json::json!({
                     "sub_id": format!("{}", claims.id.clone())
                 })).expect("Failed to serialize JSON");
@@ -189,9 +194,8 @@ pub async fn login_callback_discord(
                                 claims.username.to_string(), 
                                 format!("https://cdn.discordapp.com/avatars/{}/{}.png", claims.id.clone(), claims.avatar)).await {
                                     Ok(user) => {
-                                    
                                         HttpResponse::Found()
-                                            .header("Location", format!("{url}/profile/View"))
+                                            .append_header(("Location", format!("{url}/profile/View")))
                                             .body(response_body)
                                     },
                                     Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
@@ -199,8 +203,8 @@ pub async fn login_callback_discord(
                         }
                         else{
                             HttpResponse::Found()
-                                            .header("Location", url)
-                                            .body(response_body)
+                                .append_header(("Location", format!("{url}/profile/View")))
+                                .body(response_body)
                         }   
                     }
                     Err(err) => {
@@ -236,8 +240,13 @@ pub async fn login_callback_google(
                 let res_text = res.text().await.unwrap();
                 let claims: GoogleClaims = serde_json::from_str(&res_text).unwrap();
                 println!("{:?}", claims);
-                session.insert("sub_id", claims.sub.clone()).unwrap();
-                let url = format!("http://localhost:3000");
+                session.insert("sub_id", claims.id.clone()).expect("failed to insert sub_id into session");
+                let url = if in_production() {
+                    env::var("PRODUCTION_URL").unwrap().to_string()
+                }
+                else{
+                    "http://localhost:3000".to_string()
+                };
                 match reqwest::get(format!("http://localhost:8080/view/{}", claims.sub.clone())).await {
                     Ok(res) => {
                         if res.status() != 200 {
@@ -273,8 +282,8 @@ pub async fn get_session(session: Session) -> HttpResponse {
     match session.get::<String>("sub_id") {
         Ok(message_option) => {
             match message_option {
-            Some(message) => HttpResponse::Ok().json(message),
-            None => HttpResponse::NotFound().body("Not set.")
+                Some(message) => HttpResponse::Ok().json(message),
+                None => HttpResponse::NotFound().body("Not set.")
             }
         }
 	    Err(_) => HttpResponse::InternalServerError().body("Error.")
@@ -291,9 +300,21 @@ pub async fn validate(session: &Session) -> Result<bool, reqwest::Error> {
     if let Some(sub_id) = session.get::<String>("sub_id").unwrap() {
         let res = reqwest::get(format!("http://localhost:8080/view/{}", sub_id)).await;
         match res {
-            Ok(r) => return Ok(true),
+            Ok(_) => return Ok(true),
             Err(err) => return Err(err),
         }
     }
     Ok(false)
+}
+
+fn in_production() -> bool {
+    match env::var("IN_PRODUCTION") {
+        Ok(v) => {
+            if v == "true" {
+                return true;
+            }
+            false
+        },
+        Err(_) => false,
+    }
 }

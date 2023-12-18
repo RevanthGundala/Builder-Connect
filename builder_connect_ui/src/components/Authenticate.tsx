@@ -4,7 +4,6 @@ import {
   DiscordLoginButton,
 } from "react-social-login-buttons";
 import { NextRouter, useRouter } from "next/router";
-import { useLocalStorage } from "usehooks-ts";
 
 enum AuthProvider {
   Google,
@@ -17,7 +16,7 @@ export default function Authenticate() {
   async function handle_auth(auth_provider: AuthProvider) {
     try {
       console.log("Signing in...");
-      let url = "http://localhost:8080/login?client_type=";
+      let url = `${process.env.NEXT_PUBLIC_BASE_URL}/login?client_type=`;
       if (auth_provider === AuthProvider.Discord) {
         url += "discord";
       } else if (auth_provider === AuthProvider.Google) {
