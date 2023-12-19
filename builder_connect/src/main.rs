@@ -41,7 +41,6 @@ pub enum ClientType{
 impl ClientType{
     pub fn new_google_data() -> Data<GoogleOAuthClient> {
         let [client_id, client_secret, auth_url, token_url, redirect_url] = load_google_env_variables();
-        println!("{auth_url}");
         let client = BasicClient::new(
             ClientId::new(client_id),
             Some(ClientSecret::new(client_secret)),
@@ -90,6 +89,11 @@ async fn main() -> std::io::Result<()> {
     let signing_key = Key::generate(); 
     let chat_server =  ChatServer::new().start();
     let chat_server_data = Data::new(chat_server);
+    let socket_addr = if in_production() {
+        "0.0.0.0"
+    } else {
+        "127.0.0.1"
+    };
     HttpServer::new(move || {
         // let cors = Cors::default()
         //     .allowed_origin("http://localhost:3000")
@@ -140,7 +144,7 @@ async fn main() -> std::io::Result<()> {
             .service(send_email)
 
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("0.0.0.0", 8080))?
     .run()
     .await
 }

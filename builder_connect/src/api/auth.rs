@@ -240,7 +240,7 @@ pub async fn login_callback_google(
                 let res_text = res.text().await.unwrap();
                 let claims: GoogleClaims = serde_json::from_str(&res_text).unwrap();
                 println!("{:?}", claims);
-                session.insert("sub_id", claims.id.clone()).expect("failed to insert sub_id into session");
+                session.insert("sub_id", claims.sub.clone()).expect("failed to insert sub_id into session");
                 let url = if in_production() {
                     env::var("PRODUCTION_URL").unwrap().to_string()
                 }
@@ -256,12 +256,12 @@ pub async fn login_callback_google(
                                 claims.email.to_string(), 
                                 "".to_string(), 
                                 claims.picture).await {
-                                    Ok(user) =>  return HttpResponse::Found().header("Location", url).finish(),
+                                    Ok(user) =>  return HttpResponse::Found().append_header(("Location", url)).finish(),
                                     Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
                             }
                         }
                         else{
-                            return HttpResponse::Found().header("Location", url).finish();
+                            return HttpResponse::Found().append_header(("Location", url)).finish();
                         }   
                     }
                     Err(err) => {
@@ -307,7 +307,7 @@ pub async fn validate(session: &Session) -> Result<bool, reqwest::Error> {
     Ok(false)
 }
 
-fn in_production() -> bool {
+pub fn in_production() -> bool {
     match env::var("IN_PRODUCTION") {
         Ok(v) => {
             if v == "true" {
