@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use actix_web::cookie::{ SameSite };
 use actix_session::{ SessionMiddleware, Session };
 use actix_session::config::{ BrowserSession, CookieContentSecurity };
-use actix_session::storage::{ RedisActorSessionStore };
+use actix_session::storage::RedisSessionStore;
 use actix_web::{web::{self, Data}, App, HttpServer, http, cookie::Key};
 use api::{user_api::*, auth::*, user_actions::*, chat_api::{*, self}};
 use crate::api::chat_api::get_conversation_by_id;
@@ -94,6 +94,8 @@ async fn main() -> std::io::Result<()> {
     } else {
         "127.0.0.1"
     };
+    let redis_connection_string = "redis://127.0.0.1:6379";
+    let store = RedisSessionStore::new(redis_connection_string).await.unwrap();
     HttpServer::new(move || {
         // let cors = Cors::default()
         //     .allowed_origin("http://localhost:3000")
@@ -111,15 +113,10 @@ async fn main() -> std::io::Result<()> {
             .app_data(chat_server_data.clone())
             .wrap(cors)
             .wrap(
-                SessionMiddleware::builder(
-                    RedisActorSessionStore::new("127.0.0.1:6379"),
+                SessionMiddleware::new(
+                    store.clone(),
                     signing_key.clone(),
                 )
-                // allow the cookie to be accessed from javascript
-                .cookie_http_only(false)
-                // allow the cookie only from the current domain
-                .cookie_same_site(SameSite::Strict)
-                .build(),
             )
             .service(view_profile)
             .service(view_all_profiles)

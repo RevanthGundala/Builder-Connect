@@ -16,7 +16,7 @@ use crate::{GoogleOAuthClient, DiscordOAuthClient, ClientType};
 use reqwest;
 use crate::repository::mongodb_repo::MongoRepo;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct OAuthRequest {
     // pub state: String,
     pub code: String,
@@ -95,7 +95,7 @@ pub fn load_discord_env_variables() -> [String; 5]{
         Ok(v) => v.to_string(),
         Err(_) => format!("Error loading env variable"),
     };
-    let redirect_url = match env::var("DISCORD_OUATH_REDIRECT_URL") {
+    let redirect_url = match env::var("DISCORD_OAUTH_REDIRECT_URL") {
         Ok(v) => v.to_string(),
         Err(_) => format!("Error loading env variable"),
     };
@@ -175,6 +175,7 @@ pub async fn login_callback_discord(
                 let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
                 println!("{:?}", claims);
                 session.insert("sub_id", claims.id.clone()).expect("failed to insert sub_id into session");
+                println!("Sub_id: {}", session.get::<String>("sub_id").unwrap().unwrap());
                 let url = if in_production() {
                     env::var("PRODUCTION_URL").unwrap().to_string()
                 }
@@ -205,6 +206,7 @@ pub async fn login_callback_discord(
                             HttpResponse::Found()
                                 .append_header(("Location", format!("{url}/profile/View")))
                                 .body(response_body)
+                            
                         }   
                     }
                     Err(err) => {
@@ -241,6 +243,7 @@ pub async fn login_callback_google(
                 let claims: GoogleClaims = serde_json::from_str(&res_text).unwrap();
                 println!("{:?}", claims);
                 session.insert("sub_id", claims.sub.clone()).expect("failed to insert sub_id into session");
+                
                 let url = if in_production() {
                     env::var("PRODUCTION_URL").unwrap().to_string()
                 }
@@ -315,6 +318,9 @@ pub fn in_production() -> bool {
             }
             false
         },
-        Err(_) => false,
+        Err(e) => {
+            println!("Error checking production: {}", e.to_string());
+            return false;
+        },
     }
 }
