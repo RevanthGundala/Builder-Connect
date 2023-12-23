@@ -112,7 +112,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(
                 SessionMiddleware::builder(
-                    RedisActorSessionStore::new("127.0.0.1:6379"),
+                    RedisActorSessionStore::new("0.0.0.0:6379"),
                     signing_key.clone(),
                 )
                 // allow the cookie to be accessed from javascript

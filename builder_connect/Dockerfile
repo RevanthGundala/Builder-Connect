@@ -19,4 +19,5 @@ WORKDIR /builder_connect
 COPY --from=builder /builder_connect/target/release/builder_connect /usr/local/bin
 EXPOSE 8080
 RUN apt-get update && apt install -y openssl && apt install -y ca-certificates
+
 ENTRYPOINT ["/usr/local/bin/builder_connect"]
