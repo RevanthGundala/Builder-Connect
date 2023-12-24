@@ -28,3 +28,6 @@ version = "2.2.0"
 default-features = false
 features = ["async-std-runtime"] 
 
+[dependencies.redis]
+git = "https://github.com/redis-rs/redis-rs.git"
+

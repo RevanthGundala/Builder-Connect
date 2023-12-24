@@ -89,6 +89,8 @@ async fn main() -> std::io::Result<()> {
     let signing_key = Key::generate(); 
     let chat_server =  ChatServer::new().start();
     let chat_server_data = Data::new(chat_server);
+    let redis_conn = redis::Client::open("redis://redis:6379").unwrap();
+    redis_conn.get_connection().unwrap();
     let socket_addr = if in_production() {
         "0.0.0.0"
     } else {
@@ -112,7 +114,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(
                 SessionMiddleware::builder(
-                    RedisActorSessionStore::new("0.0.0.0:6379"),
+                    RedisActorSessionStore::new("redis://redis:6379"),
                     signing_key.clone(),
                 )
                 // allow the cookie to be accessed from javascript
