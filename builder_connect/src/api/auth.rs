@@ -42,17 +42,6 @@ pub struct DiscordClaims {
     pub email: String,
 }
 
-trait RemovableQuotes {
-    fn remove_quotes(&self) -> String;
-}
-
-impl RemovableQuotes for String {
-    fn remove_quotes(&self) -> String {
-        self.replace("\"", "")
-    }
-}
-
-
 pub fn load_google_env_variables() -> [String; 5]{
     let client_id = match env::var("GOOGLE_OAUTH_CLIENT_ID") {
         Ok(v) => v.to_string(),
@@ -63,7 +52,7 @@ pub fn load_google_env_variables() -> [String; 5]{
         Err(_) => format!("Error loading env variable"),
     };
     let auth_url = match env::var("GOOGLE_OAUTH_AUTH_URL") {
-        Ok(v) => v.to_string().remove_quotes(),
+        Ok(v) => v.to_string(),
         Err(_) => format!("Error loading env variable"),
     };
     let token_url = match env::var("GOOGLE_OAUTH_TOKEN_URL") {
@@ -175,7 +164,7 @@ pub async fn login_callback_discord(
                 let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
                 println!("{:?}", claims);
                 session.insert("sub_id", claims.id.clone()).expect("failed to insert sub_id into session");
-                println!("Sub_id: {}", session.get::<String>("sub_id").unwrap().unwrap());
+                println!("Session: {:?}", session.get::<String>("sub_id").unwrap());
                 let url = if in_production() {
                     env::var("PRODUCTION_URL").unwrap().to_string()
                 }

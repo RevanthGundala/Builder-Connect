@@ -22,6 +22,7 @@ use oauth2::{basic::BasicClient,
 };
 use actix_cors::Cors;
 use actix::Actor;
+use redis::Commands;
 pub struct GoogleOAuthClient {
     client: BasicClient,
 }
@@ -89,17 +90,13 @@ async fn main() -> std::io::Result<()> {
     let signing_key = Key::generate(); 
     let chat_server =  ChatServer::new().start();
     let chat_server_data = Data::new(chat_server);
-    let redis_conn = redis::Client::open("redis://redis:6379").unwrap();
-    redis_conn.get_connection().unwrap();
-    let socket_addr = if in_production() {
-        "0.0.0.0"
-    } else {
-        "127.0.0.1"
-    };
+    // let mut redis_conn = redis::Client::open("redis://redis:6379").unwrap();
+    // redis_conn.get_connection().unwrap();
     HttpServer::new(move || {
         // let cors = Cors::default()
         //     .allowed_origin("http://localhost:3000")
         //     .allowed_origin("http://localhost:8080")
+        //     .allowed_origin("https://builder-connect.vercel.app")
         //     .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
         //     .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
         //     .allowed_header(http::header::CONTENT_TYPE)
@@ -115,6 +112,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(
                 SessionMiddleware::builder(
                     RedisActorSessionStore::new("redis://redis:6379"),
+                    // RedisActorSessionStore::new("127.0.0.1:6379"),
                     signing_key.clone(),
                 )
                 // allow the cookie to be accessed from javascript
