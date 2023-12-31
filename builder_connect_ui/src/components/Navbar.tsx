@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 import { check_session } from "@/libs/functions";
+import { ChevronRightIcon } from "@heroicons/react/24/solid";
 
 export default function Navbar({
   sub_id,
@@ -41,12 +42,22 @@ export default function Navbar({
   }, [sub_id]);
 
   return (
-    <nav className="p-4 flex flex-row space-x-16 items-center text-white bg-cover bg-center relative justify-center">
-      <Link href="/">Home</Link>
-      <Link href={sub_id !== "" ? `/profile/View` : `/SignIn`}>Profile</Link>
-      <Link href={sub_id !== "" ? `/match/${sub_id}` : `/SignIn`}>Matches</Link>
-      <Link href={sub_id !== "" ? `/Swipe` : `/SignIn`}>Swipe</Link>
-      <div className="p-2">
+    <nav className="flex mt-8 bg-cover relative text-white">
+      <div className="flex flex-1 space-x-10 justify-center">
+        <Link href="/">Home</Link>
+        <Link href={sub_id !== "" ? `/profile/View` : `/SignIn`}>Profile</Link>
+        <Link href={sub_id !== "" ? `/match/${sub_id}` : `/SignIn`}>
+          Matches
+        </Link>
+        <Link href={sub_id !== "" ? `/Swipe` : `/SignIn`}>Swipe</Link>
+      </div>
+      <div className="flex space-x-8">
+        <div className="flex rounded-full py-2 px-4 bg-white text-black opacity-70 hover:opacity-90">
+          <Link href="/" className="items-center">
+            Contact
+          </Link>
+          <ChevronRightIcon className="h-4 w-4 justify-center items-center" />
+        </div>
         {sub_id === "" ? (
           <Link href="/SignIn">Sign In</Link>
         ) : (
