@@ -3,58 +3,108 @@ import { useEffect, useState } from "react";
 import { NextRouter, useRouter } from "next/router";
 import Email from "@/components/Email";
 import Link from "next/link";
-import { useLocalStorage } from "usehooks-ts";
 import ParticleBackground from "@/components/ParticleBackground";
-import dynamic from "next/dynamic";
 import Faq from "@/components/Faq/Faq";
+import { check_session } from "@/libs/functions";
+import Footer from "@/components/Footer";
+import { TypeAnimation } from "react-type-animation";
+import { Fade } from "react-awesome-reveal";
 
 const LandingPage = () => {
-  const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
-  const Navbar = dynamic(() => import("../components/Navbar"), {
-    ssr: false,
+  const [navigation, set_navigation] = useState({
+    href: "/SignIn",
+    text: "Get Started",
   });
+
+  // useEffect(() => {
+  //   check_session()
+  //     .then((data) => {
+  //       console.log(data);
+  //       data === ""
+  //         ? set_navigation({ href: "SignIn", text: "Get Started" })
+  //         : set_navigation({ href: "Swipe", text: `Welcome Back` }); //TODO: replace with name
+  //     })
+  //     .catch((e) => console.log(e));
+  // }, []);
 
   return (
     <>
       <ParticleBackground />
-      <Navbar sub_id={sub_id} set_sub_id={set_sub_id} />
       <div className="bg-cover bg-center relative">
-        <header className="pt-24 mx-auto">
-          <div className="container mx-auto relative z-10 text-center">
-            <h1 className="text-7xl text-white">Builder Connect</h1>
-            <p className="text-2xl text-gray-400 mt-4">
-              A platform dedicated to connecting the next generation of builders
-            </p>
-            <Link
-              href={`/Swipe`}
-              className="mt-6 inline-block bg-white text-black rounded-full py-3 px-8 hover:opacity-60"
-              shallow={true}
-            >
-              Get Started
-            </Link>
+        <Fade>
+          <header className="flex flex-col mb-96 mt-40 text-center">
+            <div className="flex justify-center">
+              <img
+                src="/images/hacker.png"
+                alt="Hacker"
+                className="w-72 h-72"
+              />
+            </div>
+            <h1 className="text-7xl text-white pt-20">Builder Connect</h1>
+            <TypeAnimation
+              className="text-2xl text-gray-400 mt-4"
+              sequence={[
+                "A platform connecting the next generation of builders.",
+              ]}
+              speed={50}
+              wrapper="div"
+              repeat={0}
+            />
+            <div className="flex justify-center">
+              <Link
+                href={"/SignIn"}
+                className="mt-6 inline-block bg-white text-black rounded-full py-3 px-8 w-fit hover:opacity-60"
+                shallow={true}
+              >
+                {"Get Started"}
+              </Link>
+            </div>
+          </header>
+        </Fade>
+
+        <div className="flex flex-col items-center text-white">
+          <div className="flex justify-between items-center w-[64rem] h-64 my-96">
+            <Fade>
+              <section className="flex flex-col space-y-12 w-[20rem]">
+                <h2 className="text-5xl">Improve Your Resume</h2>
+                <p className="text-md font-medium text-gray-300">
+                  Create a side project to make yourself stand out to employers
+                </p>
+              </section>
+            </Fade>
+            <img src="/images/resume.jpeg" alt="Resume" className="w-96 h-96" />
           </div>
-        </header>
-        <Email />
-        <section className="mt-24 mx-auto pb-10">
-          <div className="container mx-auto relative z-10 text-center">
-            <div className="w-full md:w-1/2 lg:w-1/3 p-4">
-              <div className="bg-white p-8 rounded shadow-sm shadow-white">
-                <h3 className="text-xl text-black">Improve Your Resume</h3>
-              </div>
-            </div>
-            <div className="w-full md:w-1/2 lg:w-1/3 p-4">
-              <div className="bg-white p-8 rounded shadow-white shadow-sm">
-                <h3 className="text-xl text-black">Create a Startup</h3>
-              </div>
-            </div>
-            <div className="w-full md:w-1/2 lg:w-1/3 p-4">
-              <div className="bg-white p-8 rounded shadow-sm shadow-white">
-                <h3 className="text-xl text-black">Meet Others Like You</h3>
-              </div>
-            </div>
+          <div className="flex justify-between items-center w-[64rem] h-64 my-96">
+            <Fade>
+              <section className="flex flex-col space-y-12 w-[20rem]">
+                <h2 className="text-5xl">Create a Startup</h2>
+                <p className="text-md font-medium text-gray-300">
+                  Take the future into your own hands and create the next big
+                  thing
+                </p>
+              </section>
+            </Fade>
+            <img
+              src="/images/startup.jpeg"
+              alt="Resume"
+              className="w-96 h-96"
+            />
           </div>
-        </section>
+          <div className="flex justify-between items-center w-[64rem] h-64 my-96">
+            <Fade>
+              <section className="flex flex-col space-y-12 w-[20rem]">
+                <h2 className="text-5xl">Meet Others Like You</h2>
+                <p className="text-md font-medium text-gray-300">
+                  Find others who share your interests and ambitions
+                </p>
+              </section>
+            </Fade>
+            <img src="/images/meet.jpeg" alt="Resume" className="w-96 h-96" />
+          </div>
+        </div>
         <Faq />
+        <Email />
+        <Footer />
       </div>
     </>
   );
