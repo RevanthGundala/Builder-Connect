@@ -71,8 +71,12 @@ const LandingPage = () => {
                   Create a side project to make yourself stand out to employers
                 </p>
               </section>
+              <img
+                src="/images/resume.jpeg"
+                alt="Resume"
+                className="w-96 h-96"
+              />
             </Fade>
-            <img src="/images/resume.jpeg" alt="Resume" className="w-96 h-96" />
           </div>
           <div className="flex justify-between items-center w-[64rem] h-64 my-96">
             <Fade>
@@ -83,12 +87,12 @@ const LandingPage = () => {
                   thing
                 </p>
               </section>
+              <img
+                src="/images/startup.jpeg"
+                alt="Resume"
+                className="w-96 h-96"
+              />
             </Fade>
-            <img
-              src="/images/startup.jpeg"
-              alt="Resume"
-              className="w-96 h-96"
-            />
           </div>
           <div className="flex justify-between items-center w-[64rem] h-64 my-96">
             <Fade>
@@ -98,12 +102,14 @@ const LandingPage = () => {
                   Find others who share your interests and ambitions
                 </p>
               </section>
+              <img src="/images/meet.jpeg" alt="Resume" className="w-96 h-96" />
             </Fade>
-            <img src="/images/meet.jpeg" alt="Resume" className="w-96 h-96" />
           </div>
         </div>
-        <Faq />
-        <Email />
+        <Fade>
+          <Faq />
+          <Email />
+        </Fade>
         <Footer />
       </div>
     </>
