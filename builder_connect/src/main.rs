@@ -111,7 +111,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(
                 SessionMiddleware::builder(
-                    RedisActorSessionStore::new("redis://redis:6379"),
+                    RedisActorSessionStore::new("redis:6379"),
                     // RedisActorSessionStore::new("127.0.0.1:6379"),
                     signing_key.clone(),
                 )

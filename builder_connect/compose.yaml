@@ -29,9 +29,13 @@ services:
       - BUILDER_CONNECT_EMAIL=${BUILDER_CONNECT_EMAIL}
       - BUILDER_CONNECT_EMAIL_PASSWORD=${BUILDER_CONNECT_EMAIL_PASSWORD}
       - PRODUCTION_URL=${PRODUCTION_URL}
+      - LOCALHOST=${LOCALHOST}
       - IN_PRODUCTION=${IN_PRODUCTION}
     depends_on:
       - mongodb
       - redis
+    links:
+      - mongodb:mongodb
+      - redis:redis
 volumes:
   mongodb: {}

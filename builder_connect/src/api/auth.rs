@@ -169,7 +169,7 @@ pub async fn login_callback_discord(
                     env::var("PRODUCTION_URL").unwrap().to_string()
                 }
                 else{
-                    "http://localhost:3000".to_string()
+                    env::var("LOCALHOST").unwrap().to_string()
                 };
                 let response_body = serde_json::to_string(&serde_json::json!({
                     "sub_id": format!("{}", claims.id.clone())

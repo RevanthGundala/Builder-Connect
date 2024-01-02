@@ -2,7 +2,6 @@ import ParticleBackground from "@/components/ParticleBackground";
 import React, { useEffect, useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import { view_profile } from "@/libs/functions";
 import { useLocalStorage } from "usehooks-ts";
 import { useRouter } from "next/router";
 import Profile from "@/components/Profile";

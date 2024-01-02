@@ -52,12 +52,6 @@ export default function Navbar({
         <Link href={sub_id !== "" ? `/Swipe` : `/SignIn`}>Swipe</Link>
       </div>
       <div className="flex space-x-8">
-        <div className="flex rounded-full py-2 px-4 bg-white text-black opacity-70 hover:opacity-90">
-          <Link href="/" className="items-center">
-            Contact
-          </Link>
-          <ChevronRightIcon className="h-4 w-4 justify-center items-center" />
-        </div>
         {sub_id === "" ? (
           <Link href="/SignIn">Sign In</Link>
         ) : (
