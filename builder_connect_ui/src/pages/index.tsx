@@ -5,27 +5,23 @@ import Email from "@/components/Email";
 import Link from "next/link";
 import ParticleBackground from "@/components/ParticleBackground";
 import Faq from "@/components/Faq/Faq";
-import { check_session } from "@/libs/functions";
 import Footer from "@/components/Footer";
 import { TypeAnimation } from "react-type-animation";
 import { Fade } from "react-awesome-reveal";
+import useReadSession from "@/libs/useReadSession";
 
 const LandingPage = () => {
   const [navigation, set_navigation] = useState({
     href: "/SignIn",
     text: "Get Started",
   });
+  const sub_id: string | undefined = useReadSession();
 
-  // useEffect(() => {
-  //   check_session()
-  //     .then((data) => {
-  //       console.log(data);
-  //       data === ""
-  //         ? set_navigation({ href: "SignIn", text: "Get Started" })
-  //         : set_navigation({ href: "Swipe", text: `Welcome Back` }); //TODO: replace with name
-  //     })
-  //     .catch((e) => console.log(e));
-  // }, []);
+  useEffect(() => {
+    sub_id === "" || sub_id === undefined
+      ? set_navigation({ href: "SignIn", text: "Get Started" })
+      : set_navigation({ href: "profile/View", text: `Welcome Back` }); //TODO: replace with name
+  }, [sub_id]);
 
   return (
     <>
@@ -52,11 +48,11 @@ const LandingPage = () => {
             />
             <div className="flex justify-center">
               <Link
-                href={"/SignIn"}
+                href={navigation.href}
                 className="mt-6 inline-block bg-white text-black rounded-full py-3 px-8 w-fit hover:opacity-60"
                 shallow={true}
               >
-                {"Get Started"}
+                {navigation.text}
               </Link>
             </div>
           </header>

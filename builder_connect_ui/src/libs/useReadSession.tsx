@@ -12,12 +12,18 @@ async function read_session(): Promise<string | undefined> {
 }
 
 export default function useReadSession() {
-  const [session_data, set_session_data] = useState(null);
+  const [session_data, set_session_data] = useState<string | undefined>(
+    undefined
+  );
   useEffect(() => {
+    const controller = new AbortController();
     read_session()
       .then((data) => {
-        data === "";
+        console.log("Session data: ", data);
+        if (data !== session_data) set_session_data(data);
       })
       .catch((e) => console.log(e));
-  }, []);
+    return () => controller.abort();
+  }, [session_data]);
+  return session_data;
 }

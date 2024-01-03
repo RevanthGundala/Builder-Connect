@@ -34,8 +34,5 @@ services:
     depends_on:
       - mongodb
       - redis
-    links:
-      - mongodb:mongodb
-      - redis:redis
 volumes:
   mongodb: {}

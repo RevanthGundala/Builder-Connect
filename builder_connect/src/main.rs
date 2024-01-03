@@ -22,7 +22,8 @@ use oauth2::{basic::BasicClient,
 };
 use actix_cors::Cors;
 use actix::Actor;
-use redis::Commands;
+extern crate dotenv;
+use std::env;
 pub struct GoogleOAuthClient {
     client: BasicClient,
 }
@@ -90,8 +91,10 @@ async fn main() -> std::io::Result<()> {
     let signing_key = Key::generate(); 
     let chat_server =  ChatServer::new().start();
     let chat_server_data = Data::new(chat_server);
-    // let mut redis_conn = redis::Client::open("redis://redis:6379").unwrap();
-    // redis_conn.get_connection().unwrap();
+    let redis_conn_string = match env::var("IN_PRODUCTION").unwrap().as_str() {
+        "true" => "redis:6379".to_string(),
+        _ => "127.0.0.1:6379".to_string()
+    };
     HttpServer::new(move || {
         // let cors = Cors::default()
         //     .allowed_origin("http://localhost:3000")
@@ -111,8 +114,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(
                 SessionMiddleware::builder(
-                    RedisActorSessionStore::new("redis:6379"),
-                    // RedisActorSessionStore::new("127.0.0.1:6379"),
+                    RedisActorSessionStore::new(redis_conn_string.clone()),
                     signing_key.clone(),
                 )
                 // allow the cookie to be accessed from javascript

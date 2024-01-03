@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
-import { check_session } from "@/libs/functions";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
+import { check_session } from "@/libs/functions";
 
 export default function Navbar({
   sub_id,
@@ -27,23 +27,9 @@ export default function Navbar({
     }
   }
 
-  useEffect(() => {
-    if (sub_id === "") {
-      let updating = true;
-      let sub = setInterval(async () => {
-        let id = await check_session();
-        if (id) set_sub_id(id);
-      }, 3000);
-      return () => {
-        clearInterval(sub);
-        updating = false;
-      };
-    }
-  }, [sub_id]);
-
   return (
-    <nav className="flex mt-8 bg-cover relative text-white">
-      <div className="flex flex-1 space-x-10 justify-center">
+    <nav className="flex mt-8 bg-cover relative border-b border-gray-600 pb-6 text-white items-center">
+      <div className="flex flex-1 space-x-10 justify-start px-12">
         <Link href="/">Home</Link>
         <Link href={sub_id !== "" ? `/profile/View` : `/SignIn`}>Profile</Link>
         <Link href={sub_id !== "" ? `/match/${sub_id}` : `/SignIn`}>
@@ -51,12 +37,13 @@ export default function Navbar({
         </Link>
         <Link href={sub_id !== "" ? `/Swipe` : `/SignIn`}>Swipe</Link>
       </div>
-      <div className="flex space-x-8">
+      <div className="flex space-x-2 text-black p-2 pl-3 items-center rounded-full bg-white mr-10 hover:opacity-70">
         {sub_id === "" ? (
           <Link href="/SignIn">Sign In</Link>
         ) : (
           <button onClick={logout}>Sign Out</button>
         )}
+        <ChevronRightIcon className="w-3 h-3" />
       </div>
     </nav>
   );
