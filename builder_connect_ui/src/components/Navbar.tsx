@@ -31,7 +31,7 @@ export default function Navbar() {
         <Link href={sub_id !== "" ? `/Swipe` : `/SignIn`}>Swipe</Link>
       </div>
       <div className="flex space-x-2 text-black p-2 pl-3 items-center rounded-full bg-white mr-10 hover:opacity-70">
-        {sub_id === "" ? (
+        {sub_id === "" || sub_id === undefined ? (
           <Link href="/SignIn">Sign In</Link>
         ) : (
           <button onClick={logout}>Sign Out</button>

@@ -5,12 +5,14 @@ use actix_web_actors::ws;
 use futures::FutureExt;
 use mongodb::bson::{oid::ObjectId, Uuid};
 use super::socket::{ChatServer, Connect, Disconnect, self, ClientMessage};
+use crate::api::auth::in_production;
 use crate::repository::mongodb_repo::MongoRepo;
 use serde::{Deserialize, Serialize};
 use crate::models::message_model::Message;
 use chrono::{DateTime, Utc, Timelike, Duration as ChronoDuration};
 use crate::models::user_model::User;
 use crate::api::user_actions::send_email;
+use std::env;
 
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
@@ -183,10 +185,16 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsChatSession {
                                     true
                                 );
                                 if db.exists_in_mailing_list(&updated_user.email).await {
+                                    let url = if in_production() {
+                                        env::var("PRODUCTION_URL").unwrap().to_string()
+                                    }
+                                    else{
+                                        env::var("LOCALHOST").unwrap().to_string()
+                                    };
                                     let _ = send_email(
                                         updated_user.email,
                                         "You have a new message!".to_string(),
-                                        format!("You have new messages at http://localhost:3000\nIf you would like to stop receiving these emails, please unsubscribe at http://localhost:3000/unsubscribe"),
+                                        format!("You have new messages at {url}\nIf you would like to stop receiving these emails, please unsubscribe at {url}/unsubscribe"),
                                     ).await.expect("Email error");
                                 }
                             }

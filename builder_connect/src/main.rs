@@ -24,6 +24,57 @@ use actix_cors::Cors;
 use actix::Actor;
 extern crate dotenv;
 use std::env;
+
+pub fn load_google_env_variables() -> [String; 5]{
+    let client_id = match env::var("GOOGLE_OAUTH_CLIENT_ID") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading env variable"),
+    };
+    let client_secret = match env::var("GOOGLE_OAUTH_CLIENT_SECRET") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading env variable"),
+    };
+    let auth_url = match env::var("GOOGLE_OAUTH_AUTH_URL") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading env variable"),
+    };
+    let token_url = match env::var("GOOGLE_OAUTH_TOKEN_URL") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading env variable"),
+    };
+    let redirect_url = match env::var("GOOGLE_OAUTH_REDIRECT_URL") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading env variable"),
+    };
+
+    [client_id, client_secret, auth_url, token_url, redirect_url]
+}
+
+pub fn load_discord_env_variables() -> [String; 5]{
+    let client_id = match env::var("DISCORD_OAUTH_CLIENT_ID") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading env variable"),
+    };
+    let client_secret = match env::var("DISCORD_OAUTH_CLIENT_SECRET") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading env variable"),
+    };
+    let auth_url = match env::var("DISCORD_OAUTH_AUTH_URL") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading env variable"),
+    };
+    let token_url = match env::var("DISCORD_OAUTH_TOKEN_URL") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading env variable"),
+    };
+    let redirect_url = match env::var("DISCORD_OAUTH_REDIRECT_URL") {
+        Ok(v) => v.to_string(),
+        Err(_) => format!("Error loading env variable"),
+    };
+
+    [client_id, client_secret, auth_url, token_url, redirect_url]
+}
+
 pub struct GoogleOAuthClient {
     client: BasicClient,
 }
@@ -91,10 +142,13 @@ async fn main() -> std::io::Result<()> {
     let signing_key = Key::generate(); 
     let chat_server =  ChatServer::new().start();
     let chat_server_data = Data::new(chat_server);
-    let redis_conn_string = match env::var("IN_PRODUCTION").unwrap().as_str() {
-        "true" => "redis:6379".to_string(),
-        _ => "127.0.0.1:6379".to_string()
+    let redis_conn_string  = if in_production() {
+        "redis:6379".to_string()
+    }
+    else{
+        "127.0.0.1:6379".to_string()
     };
+    
     HttpServer::new(move || {
         // let cors = Cors::default()
         //     .allowed_origin("http://localhost:3000")

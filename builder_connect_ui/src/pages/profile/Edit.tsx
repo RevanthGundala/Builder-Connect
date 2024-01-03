@@ -8,7 +8,7 @@ import useProfile from "@/libs/useProfile";
 
 export default function Edit() {
   const router = useRouter();
-  const [profile, set_profile] = useProfile();
+  const [profile, set_profile] = useProfile(undefined);
   const [image_url, set_image_url] = useState("");
   const [username, set_username] = useState("");
   const [email, set_email] = useState("");

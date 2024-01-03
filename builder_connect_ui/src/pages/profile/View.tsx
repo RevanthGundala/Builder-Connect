@@ -8,7 +8,7 @@ import useProfile from "@/libs/useProfile";
 // import Navbar from "@/components/Navbar";
 export default function View() {
   const [alert_shown, set_alert_shown] = useState(false);
-  const [profile, set_profile] = useProfile();
+  const [profile, set_profile] = useProfile(undefined);
 
   const Navbar = dynamic(() => import("../../components/Navbar"), {
     ssr: false,

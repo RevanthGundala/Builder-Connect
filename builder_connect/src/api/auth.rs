@@ -18,18 +18,13 @@ use crate::repository::mongodb_repo::MongoRepo;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct OAuthRequest {
-    // pub state: String,
     pub code: String,
-    // pub scope: String,
-    // pub authuser: String,
-    // pub prompt: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GoogleClaims {
     pub sub: String,
     pub given_name: String,
-    // pub family_name: String,
     pub email: String,
     pub picture: String,
 }
@@ -42,56 +37,6 @@ pub struct DiscordClaims {
     pub email: String,
 }
 
-pub fn load_google_env_variables() -> [String; 5]{
-    let client_id = match env::var("GOOGLE_OAUTH_CLIENT_ID") {
-        Ok(v) => v.to_string(),
-        Err(_) => format!("Error loading env variable"),
-    };
-    let client_secret = match env::var("GOOGLE_OAUTH_CLIENT_SECRET") {
-        Ok(v) => v.to_string(),
-        Err(_) => format!("Error loading env variable"),
-    };
-    let auth_url = match env::var("GOOGLE_OAUTH_AUTH_URL") {
-        Ok(v) => v.to_string(),
-        Err(_) => format!("Error loading env variable"),
-    };
-    let token_url = match env::var("GOOGLE_OAUTH_TOKEN_URL") {
-        Ok(v) => v.to_string(),
-        Err(_) => format!("Error loading env variable"),
-    };
-    let redirect_url = match env::var("GOOGLE_OAUTH_REDIRECT_URL") {
-        Ok(v) => v.to_string(),
-        Err(_) => format!("Error loading env variable"),
-    };
-
-    [client_id, client_secret, auth_url, token_url, redirect_url]
-}
-
-pub fn load_discord_env_variables() -> [String; 5]{
-    let client_id = match env::var("DISCORD_OAUTH_CLIENT_ID") {
-        Ok(v) => v.to_string(),
-        Err(_) => format!("Error loading env variable"),
-    };
-    let client_secret = match env::var("DISCORD_OAUTH_CLIENT_SECRET") {
-        Ok(v) => v.to_string(),
-        Err(_) => format!("Error loading env variable"),
-    };
-    let auth_url = match env::var("DISCORD_OAUTH_AUTH_URL") {
-        Ok(v) => v.to_string(),
-        Err(_) => format!("Error loading env variable"),
-    };
-    let token_url = match env::var("DISCORD_OAUTH_TOKEN_URL") {
-        Ok(v) => v.to_string(),
-        Err(_) => format!("Error loading env variable"),
-    };
-    let redirect_url = match env::var("DISCORD_OAUTH_REDIRECT_URL") {
-        Ok(v) => v.to_string(),
-        Err(_) => format!("Error loading env variable"),
-    };
-
-    [client_id, client_secret, auth_url, token_url, redirect_url]
-}
-
 #[get("/login")]
 pub async fn login(
     client_type: Query<ClientType>, 
@@ -101,38 +46,116 @@ pub async fn login(
     match validate(&session).await {
         Ok(res) => {
             if res {
-                return HttpResponse::Ok().json("/");
+                return HttpResponse::InternalServerError().json("Already Signed In");
             }
             else{
                 // let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
+                let (client, auth_url, csrf_token);
                 match client_type.into_inner() {
                     ClientType::Google => {
-                        let client = google_data.client.clone();
-                        let (auth_url, csrf_token) = client
+                        client = google_data.client.clone();
+                        (auth_url, csrf_token) = client
                             .authorize_url(CsrfToken::new_random)
                             .add_scope(Scope::new("profile".to_string()))
                             .add_scope(Scope::new("email".to_string()))
                             // .set_pkce_challenge(pkce_challenge)
                             .url();
-                        return HttpResponse::Ok().json(auth_url.to_string());
                     }
                     ClientType::Discord => {
-                        let client = discord_data.client.clone();
-                        let (auth_url, csrf_token) = client
+                        client = discord_data.client.clone();
+                        (auth_url, csrf_token) = client
                             .authorize_url(CsrfToken::new_random)
                             .add_scope(Scope::new("email".to_string()))
                             .add_scope(Scope::new("identify".to_string()))
                             // .set_pkce_challenge(pkce_challenge)
                             .url();
-                        return HttpResponse::Ok().json(auth_url.to_string());
+                        
                     }
                 }
-                
+                return HttpResponse::Ok().json(auth_url.to_string());
             }
         }
         Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
+
+// async fn login_callback<T >(
+//     db: Data<MongoRepo>,
+//     data: Data<T>,
+//     req: Query<OAuthRequest>,
+//     session: Session)
+//     where T : Clone {
+//         match validate(&session).await {
+//             Ok(res) => {
+//                 if !res {
+//                     let client = data.client.clone();
+//                     let token_result = client
+//                         .exchange_code(AuthorizationCode::new(req.into_inner().code))
+//                         // .set_pkce_verifier(PkceCodeVerifier::new(verifier.into_inner()))
+//                         .request_async(async_http_client)
+//                         .await.unwrap();
+//                     let url = "https://discord.com/api/users/@me";
+//                     let token_type = token_result.token_type();
+//                     let access_token = token_result.access_token().secret();
+//                     let mut headers = reqwest::header::HeaderMap::new();
+//                     headers.insert(reqwest::header::AUTHORIZATION, format!("{:?} {}", token_type, access_token).parse().unwrap());
+//                     let res = reqwest::Client::new()
+//                         .get(url)
+//                         .headers(headers)
+//                         .send()
+//                         .await
+//                         .unwrap();
+//                     let res_text = res.text().await.unwrap();
+//                     let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
+//                     println!("{:?}", claims);
+//                     session.insert("sub_id", claims.id.clone()).expect("failed to insert sub_id into session");
+//                     println!("Session: {:?}", session.get::<String>("sub_id").unwrap());
+//                     let url = if in_production() {
+//                         env::var("PRODUCTION_URL").unwrap().to_string()
+//                     }
+//                     else{
+//                         env::var("LOCALHOST").unwrap().to_string()
+//                     };
+//                     let response_body = serde_json::to_string(&serde_json::json!({
+//                         "sub_id": format!("{}", claims.id.clone())
+//                     })).expect("Failed to serialize JSON");
+//                     match reqwest::get(format!("http://localhost:8080/view/{}", claims.id.clone())).await {
+//                         Ok(res) => {
+//                             if res.status() != 200 {
+//                                 match db.create_user(
+//                                     claims.id.clone(), 
+//                                     claims.username.to_string(), 
+//                                     claims.email.to_string(), 
+//                                     claims.username.to_string(), 
+//                                     format!("https://cdn.discordapp.com/avatars/{}/{}.png", claims.id.clone(), claims.avatar)).await {
+//                                         Ok(user) => {
+//                                             HttpResponse::Found()
+//                                                 .append_header(("Location", format!("{url}/profile/View")))
+//                                                 .body(response_body)
+//                                         },
+//                                         Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
+//                                 }
+//                             }
+//                             else{
+//                                 HttpResponse::Found()
+//                                     .append_header(("Location", format!("{url}/profile/View")))
+//                                     .body(response_body)
+                                
+//                             }   
+//                         }
+//                         Err(err) => {
+//                             return HttpResponse::InternalServerError().body(err.to_string());
+//                         }
+//                     }
+//                 }
+//                 else{
+//                     return HttpResponse::Ok().json("/");
+//                 }
+//             }
+//             Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
+//         }
+
+//     } 
 
 #[get("/login/callback/discord")]
 pub async fn login_callback_discord(

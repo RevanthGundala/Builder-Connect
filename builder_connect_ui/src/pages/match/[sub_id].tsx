@@ -9,9 +9,9 @@ import useReadSession from "@/libs/useReadSession";
 import useProfile from "@/libs/useProfile";
 
 export default function Messages() {
-  const [profile, set_profile] = useProfile();
+  const [profile, set_profile] = useProfile(undefined);
   const [match_sub_id, set_match_sub_id] = useState("");
-  const [match_profile, set_match_profile] = useProfile(match_sub_id ?? "");
+  const [match_profile, set_match_profile] = useProfile(match_sub_id);
   const { sub_id } = useReadSession();
   const [match_room_id, set_match_room_id] = useState<string>("");
   const [all_messages, set_all_messages] = useState(new Map());
@@ -60,7 +60,7 @@ export default function Messages() {
         <div className="grid grid-cols-9 min-h-screen">
           <div className="col-span-2 border-r border-gray-300">
             <div className="py-2 px-1">
-              <Link href="/">
+              <Link href="/profile/View">
                 <ArrowLeftIcon className="h-8 w-8 text-white" />
               </Link>
             </div>
@@ -74,7 +74,8 @@ export default function Messages() {
             />
           </div>
           <div className="md:col-span-7 lg:col-span-5 border-r border-gray-300">
-            {match_profile ? (
+            {match_profile &&
+            JSON.stringify(profile) !== JSON.stringify(match_profile) ? (
               <MessageComponent
                 match_profile={match_profile}
                 sub_id={sub_id}
