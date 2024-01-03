@@ -1,27 +1,22 @@
 import { useEffect, useState, useMemo } from "react";
 import { EnvelopeIcon } from "@heroicons/react/24/solid";
-import { view_profile } from "@/libs/functions";
 import SidebarComponent from "./SidebarComponent";
 
 export default function Sidebar({
-  sub_id,
   profile,
   room_to_last_message,
-  set_profile,
-  set_match_profile,
+  match_sub_id,
+  set_match_sub_id,
   set_match_room_id,
   set_room_to_last_message,
 }: {
-  sub_id: string;
-  profile: any;
+  profile: any | undefined;
   room_to_last_message: Map<string, any>;
-  match_room_id: string;
-  set_profile: React.Dispatch<React.SetStateAction<any>>;
-  set_match_profile: React.Dispatch<React.SetStateAction<any>>;
+  match_sub_id: string;
+  set_match_sub_id: React.Dispatch<React.SetStateAction<any>>;
   set_match_room_id: React.Dispatch<React.SetStateAction<any>>;
   set_room_to_last_message: React.Dispatch<React.SetStateAction<any>>;
 }) {
-  const [match_sub_id, set_match_sub_id] = useState("");
   const [rooms, set_rooms] = useState<any[]>([]);
 
   function get_room_order(profile_rooms: any[] = rooms) {
@@ -42,30 +37,25 @@ export default function Sidebar({
     ]);
   }
 
-  async function get_profile(id: string = sub_id) {
-    const profile_data = await view_profile(id, profile);
-    id === sub_id ? set_profile(profile_data) : set_match_profile(profile_data);
-    if (id === sub_id && profile_data?.matches.length > 0) {
-      const profile_rooms = await Promise.all(
-        profile_data?.matches.map(async (room: any) => {
-          const match_id = room.user_sub_ids[0];
-          const url = process.env.NEXT_PUBLIC_BASE_URL + `/view/${match_id}`;
-          const res = await fetch(url);
-          const match = await res.json();
-          return [match, room.room_id];
-        })
-      );
-      set_rooms(profile_rooms);
-    }
+  async function get_rooms() {
+    if (!profile) return;
+    const profile_rooms = await Promise.all(
+      profile?.matches.map(async (room: any) => {
+        const match_id = room.user_sub_ids[0];
+        const url = process.env.NEXT_PUBLIC_BASE_URL + `/view/${match_id}`;
+        const res = await fetch(url);
+        const match = await res.json();
+        return [match, room.room_id];
+      })
+    );
+    set_rooms(profile_rooms);
   }
 
   useEffect(() => {
-    get_profile();
-  }, []);
-
-  useEffect(() => {
-    get_profile(match_sub_id);
-  }, [match_sub_id]);
+    const controller = new AbortController();
+    get_rooms();
+    return () => controller.abort();
+  }, [profile]);
 
   useEffect(() => {
     get_room_order();

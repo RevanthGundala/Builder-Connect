@@ -4,12 +4,11 @@ import dynamic from "next/dynamic";
 import { useLocalStorage } from "usehooks-ts";
 import ParticleBackground from "@/components/ParticleBackground";
 import Profile from "@/components/Profile";
-import useReadSession from "@/libs/useReadSession";
-import useReadProfile from "@/libs/useReadProfile";
-
+import useProfile from "@/libs/useProfile";
+// import Navbar from "@/components/Navbar";
 export default function View() {
   const [alert_shown, set_alert_shown] = useState(false);
-  const profile = useReadProfile();
+  const [profile, set_profile] = useProfile();
 
   const Navbar = dynamic(() => import("../../components/Navbar"), {
     ssr: false,

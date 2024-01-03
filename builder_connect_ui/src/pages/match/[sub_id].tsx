@@ -1,23 +1,24 @@
 import ParticleBackground from "@/components/ParticleBackground";
 import React, { useEffect, useMemo, useState } from "react";
-import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
-import { useLocalStorage } from "usehooks-ts";
-import { useRouter } from "next/router";
 import Profile from "@/components/Profile";
 import MessageComponent from "@/components/MessageComponent";
 import Link from "next/link";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import useReadSession from "@/libs/useReadSession";
+import useProfile from "@/libs/useProfile";
 
 export default function Messages() {
-  const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
-  const [profile, set_profile] = useState<any>(null);
-  const [match_profile, set_match_profile] = useState<any>(null);
+  const [profile, set_profile] = useProfile();
+  const [match_sub_id, set_match_sub_id] = useState("");
+  const [match_profile, set_match_profile] = useProfile(match_sub_id ?? "");
+  const { sub_id } = useReadSession();
   const [match_room_id, set_match_room_id] = useState<string>("");
   const [all_messages, set_all_messages] = useState(new Map());
   const [room_to_last_message, set_room_to_last_message] = useState(new Map());
 
   useEffect(() => {
+    const controller = new AbortController();
     fetch_data();
 
     async function fetch_data() {
@@ -49,6 +50,7 @@ export default function Messages() {
     }
 
     console.log("room_id: ", match_room_id);
+    return () => controller.abort();
   }, [profile, match_profile, match_room_id]);
 
   return (
@@ -63,11 +65,9 @@ export default function Messages() {
               </Link>
             </div>
             <Sidebar
-              sub_id={sub_id}
               profile={profile}
-              set_profile={set_profile}
-              set_match_profile={set_match_profile}
-              match_room_id={match_room_id}
+              match_sub_id={match_sub_id}
+              set_match_sub_id={set_match_sub_id}
               set_match_room_id={set_match_room_id}
               room_to_last_message={room_to_last_message}
               set_room_to_last_message={set_room_to_last_message}
@@ -80,9 +80,6 @@ export default function Messages() {
                 sub_id={sub_id}
                 room_id={match_room_id}
                 all_messages={all_messages}
-                room_to_last_message={room_to_last_message}
-                set_room_to_last_message={set_room_to_last_message}
-                set_all_messages={set_all_messages}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full">

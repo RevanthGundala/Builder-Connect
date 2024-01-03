@@ -4,10 +4,11 @@ import React, { useEffect, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import dynamic from "next/dynamic";
 import ParticleBackground from "@/components/ParticleBackground";
+import useProfile from "@/libs/useProfile";
 
 export default function Edit() {
   const router = useRouter();
-  const [profile, set_profile] = useState<any>({});
+  const [profile, set_profile] = useProfile();
   const [image_url, set_image_url] = useState("");
   const [username, set_username] = useState("");
   const [email, set_email] = useState("");
@@ -70,24 +71,10 @@ export default function Edit() {
     }
   }
 
-  useEffect(() => {
-    view_profile();
-
-    async function view_profile() {
-      if (sub_id === "") return;
-      const url = process.env.NEXT_PUBLIC_BASE_URL + `/view/${sub_id}`;
-      const res = await fetch(url, { credentials: "include" });
-      const data = await res.json();
-      JSON.stringify(profile) === JSON.stringify(data)
-        ? console.log("Same")
-        : set_profile(data);
-    }
-  }, [is_connected, profile]);
-
   return (
     <>
       <ParticleBackground />
-      <Navbar sub_id={sub_id} set_sub_id={set_sub_id} />
+      <Navbar />
       <div className="pt-12 bg-cover bg-center relative mx-auto flex flex-col items-center">
         <div className="bg-white p-8 rounded shadow-md w-96">
           <h1 className="text-black text-center text-2xl mb-4">Edit Profile</h1>

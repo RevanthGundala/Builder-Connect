@@ -1,25 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
 import { PhotoIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
-import Room from "@/components/Conversation";
 import Conversation from "@/components/Conversation";
-import useWebSocket, { ReadyState } from "react-use-websocket";
+import useWebSocket from "react-use-websocket";
 
 export default function MessageComponent({
   match_profile,
   sub_id,
   room_id,
   all_messages,
-  room_to_last_message,
-  set_room_to_last_message,
-  set_all_messages,
 }: {
   match_profile: any;
-  sub_id: string;
+  sub_id: string | undefined;
   room_id: string;
   all_messages: Map<string, any[]>;
-  room_to_last_message: Map<string, any>;
-  set_room_to_last_message: React.Dispatch<React.SetStateAction<any>>;
-  set_all_messages: React.Dispatch<React.SetStateAction<any>>;
 }) {
   const [text, set_text] = useState("");
   const [is_typing, set_is_typing] = useState(false);
@@ -103,7 +96,10 @@ export default function MessageComponent({
             ref={ref}
             className="flex flex-col border-b border-gray-400 max-h-[600px] min-h-[600px] overflow-auto"
           >
-            <Conversation messages={socket_messages ?? []} sub_id={sub_id} />
+            <Conversation
+              messages={socket_messages ?? []}
+              sub_id={sub_id ?? ""}
+            />
           </main>
         </div>
         <footer className="flex flex-col">
