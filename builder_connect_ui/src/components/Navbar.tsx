@@ -2,25 +2,18 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 import { ChevronRightIcon } from "@heroicons/react/24/solid";
-import { check_session } from "@/libs/functions";
+import useReadSession from "@/libs/useReadSession";
 
-export default function Navbar({
-  sub_id,
-  set_sub_id,
-}: {
-  sub_id: string;
-  set_sub_id: React.Dispatch<React.SetStateAction<any>>;
-}) {
+export default function Navbar() {
   const router = useRouter();
+  const { sub_id } = useReadSession();
 
   async function logout() {
     try {
       const url = process.env.NEXT_PUBLIC_BASE_URL + "/logout";
       const response = await fetch(url, { credentials: "include" });
       const data = await response.json();
-      const id = await check_session();
-      id ? set_sub_id(id) : set_sub_id("");
-      router.push("/");
+      if (data === "Logged out") router.push("/");
       console.log(data);
     } catch (e) {
       console.log(e);

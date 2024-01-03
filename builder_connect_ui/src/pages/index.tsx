@@ -15,7 +15,7 @@ const LandingPage = () => {
     href: "/SignIn",
     text: "Get Started",
   });
-  const sub_id: string | undefined = useReadSession();
+  const { sub_id } = useReadSession();
 
   useEffect(() => {
     sub_id === "" || sub_id === undefined

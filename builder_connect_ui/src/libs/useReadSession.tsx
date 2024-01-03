@@ -12,18 +12,21 @@ async function read_session(): Promise<string | undefined> {
 }
 
 export default function useReadSession() {
-  const [session_data, set_session_data] = useState<string | undefined>(
-    undefined
-  );
+  const [sub_id, set_sub_id] = useState<string | undefined>(undefined);
+  const [is_loading, set_is_loading] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
+    set_is_loading(true);
     read_session()
       .then((data) => {
         console.log("Session data: ", data);
-        if (data !== session_data) set_session_data(data);
+        if (data !== sub_id) set_sub_id(data);
       })
       .catch((e) => console.log(e));
-    return () => controller.abort();
-  }, [session_data]);
-  return session_data;
+    return () => {
+      controller.abort();
+      set_is_loading(false);
+    };
+  }, [sub_id]);
+  return { is_loading, sub_id };
 }
