@@ -7,7 +7,6 @@ use actix_web::{
 };
 use std::env;
 extern crate dotenv;
-use dotenv::dotenv;
 use reqwest::{Response, header::HeaderValue};
 use mongodb::bson::{self, doc, Uuid};
 use lettre::message::header::ContentType;
@@ -191,7 +190,6 @@ pub async fn recommend_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResp
 }
 
 pub async fn generate_embedding(text: &String) -> Result<Vec<f32>, reqwest::Error>{
-    dotenv().ok();
     let api_url = match env::var("HUGGING_FACE_API_URL") {
         Ok(v) => v.to_string(),
         Err(_) => format!("Error loading API URL"),

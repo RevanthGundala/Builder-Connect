@@ -14,7 +14,7 @@ use repository::mongodb_repo::MongoRepo;
 use actix_cors::Cors;
 use actix::Actor;
 extern crate dotenv;
-
+// TODO: Test all in production
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let db = MongoRepo::init().await;
@@ -67,8 +67,8 @@ async fn main() -> std::io::Result<()> {
             .service(recommend_user)
             .service(view_matches)
             .service(login)
-            // .service(login_callback_google)
-            // .service(login_callback_discord)
+            .service(login_callback_google)
+            .service(login_callback_discord)
             .service(logout)
             .service(get_session)
             .service(create_many_users) //TODO: delete when done testing

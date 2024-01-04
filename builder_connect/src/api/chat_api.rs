@@ -1,11 +1,7 @@
-use std::time::Instant;
 use actix::*;
-use actix_web::{get, post, web::{self, Data, Path}, Error, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, web::{self, Data, Path}, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
-use mongodb::bson::Uuid;
-use serde_json::json;
 use crate::{repository::mongodb_repo::MongoRepo, chat::session::WsChatSession};
-use crate::chat::session;
 use crate::chat::socket::ChatServer;
 
 #[get("/chat/{room_id}")]

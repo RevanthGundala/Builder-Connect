@@ -1,14 +1,10 @@
 use std::env;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use oauth2::{
-    AuthorizationCode,
     AuthUrl,
     ClientId,
     ClientSecret,
-    CsrfToken,
     RedirectUrl,
-    Scope,
-    TokenResponse,
     TokenUrl,
     basic::BasicClient,
 };

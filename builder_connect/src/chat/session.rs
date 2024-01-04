@@ -1,15 +1,14 @@
 use std::time::{Duration, Instant};
 use actix::prelude::*;
-use actix_web::web::{self, Data, block};
+use actix_web::web::Data;
 use actix_web_actors::ws;
-use futures::FutureExt;
-use mongodb::bson::{oid::ObjectId, Uuid};
-use super::socket::{ChatServer, Connect, Disconnect, self, ClientMessage};
+use mongodb::bson::Uuid;
+use super::socket::{ChatServer, Connect, self, ClientMessage};
 use crate::api::auth::in_production;
 use crate::repository::mongodb_repo::MongoRepo;
 use serde::{Deserialize, Serialize};
 use crate::models::message_model::Message;
-use chrono::{DateTime, Utc, Timelike, Duration as ChronoDuration};
+use chrono::{DateTime, Utc, Duration as ChronoDuration};
 use crate::models::user_model::User;
 use crate::api::user_actions::send_email;
 use std::env;
@@ -82,7 +81,7 @@ impl Actor for WsChatSession {
                 addr: addr.recipient(),
             })
             .into_actor(self)
-            .then(|res, act, ctx| {
+            .then(|res, _act, ctx| {
                 match res {
                     Ok(_res) => (),
                     _ => ctx.stop(),

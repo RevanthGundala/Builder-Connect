@@ -1,4 +1,4 @@
-use actix_web::{get, post, delete, web::{self, Data, Path}, Error, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, post, delete, web::{self, Path}, HttpResponse, Responder};
 use crate::repository::mongodb_repo::MongoRepo;
 use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;

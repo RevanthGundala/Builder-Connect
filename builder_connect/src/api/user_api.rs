@@ -132,9 +132,8 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
             last_seen: Some(Utc::now()),
         },
     ];
-    let mut res;
     for user in users {
-        res = db
+        _ = db
             .users
             .insert_one(user.clone(), None)
             .await
@@ -153,7 +152,7 @@ pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {
 
 #[delete("/delete_users")]
 pub async fn delete_users(db: Data<MongoRepo>) -> HttpResponse{
-        let user_detail = db
+        let _ = db
             .users
             .delete_many(doc!{}, None)
             .await
@@ -164,7 +163,7 @@ pub async fn delete_users(db: Data<MongoRepo>) -> HttpResponse{
 
 #[delete("/delete_messages")]
 pub async fn delete_messages(db: Data<MongoRepo>) -> HttpResponse{
-        let user_detail = db
+        let _ = db
             .messages
             .delete_many(doc!{}, None)
             .await
@@ -207,7 +206,7 @@ pub async fn edit_profile(
         return HttpResponse::BadRequest().body("invalid ID");
     };
     let(clone1, clone2) = (new_user.clone(), new_user.clone());
-    let mut data;
+    let data;
     match update_embedding(new_user, clone2.vector_embeddings.unwrap()).await {
         Ok(embeddings) => {
             data = set_fields(

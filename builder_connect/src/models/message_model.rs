@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use mongodb::bson::{oid::ObjectId, Uuid};
+use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
