@@ -13,7 +13,7 @@ async function view_profile(sub_id: string): Promise<any | undefined> {
 }
 
 // This will read the profile if there is an ID passed in, or it will default to the current user's profile.
-export default function useReadProfile(id: string | undefined = undefined) {
+export default function useProfile(id: string | undefined = undefined) {
   const [profile, set_profile] = useState<any | undefined>(undefined);
   let { sub_id } = useReadSession();
   if (id) sub_id = id;

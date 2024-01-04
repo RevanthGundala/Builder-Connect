@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useLocalStorage } from "usehooks-ts";
 import ParticleBackground from "@/components/ParticleBackground";
 import Profile from "@/components/Profile";
 import useProfile from "@/libs/useProfile";
