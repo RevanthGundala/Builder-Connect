@@ -11,11 +11,9 @@ use serde::{Deserialize, Serialize};
 use actix_web::{get, HttpResponse, web::{Data, Query}};
 use actix_session::Session;
 extern crate dotenv;
-use dotenv::dotenv;
-use crate::{GoogleOAuthClient, DiscordOAuthClient, ClientType};
 use reqwest;
-use crate::repository::mongodb_repo::MongoRepo;
-
+use crate::{repository::mongodb_repo::MongoRepo, lib::OAuthClient};
+use crate::lib::{ClientType, OAuthClientData};
 #[derive(Debug, Deserialize, Clone)]
 pub struct OAuthRequest {
     pub code: String,
@@ -33,15 +31,14 @@ pub struct GoogleClaims {
 pub struct DiscordClaims {
     pub id: String,
     pub username: String, 
-    pub avatar: String,
     pub email: String,
+    pub avatar: String,
 }
 
 #[get("/login")]
 pub async fn login(
     client_type: Query<ClientType>, 
-    google_data: Data<GoogleOAuthClient>,
-    discord_data: Data<DiscordOAuthClient>, 
+    data: Data<Vec<OAuthClientData>>,
     session: Session) -> HttpResponse {
     match validate(&session).await {
         Ok(res) => {
@@ -50,19 +47,11 @@ pub async fn login(
             }
             else{
                 // let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
-                let (client, auth_url, csrf_token);
+                let client: Data<OAuthClient>;
+                let (auth_url, csrf_token);
                 match client_type.into_inner() {
-                    ClientType::Google => {
-                        client = google_data.client.clone();
-                        (auth_url, csrf_token) = client
-                            .authorize_url(CsrfToken::new_random)
-                            .add_scope(Scope::new("profile".to_string()))
-                            .add_scope(Scope::new("email".to_string()))
-                            // .set_pkce_challenge(pkce_challenge)
-                            .url();
-                    }
-                    ClientType::Discord => {
-                        client = discord_data.client.clone();
+                    ClientType::DISCORD => {
+                        client = data.iter().find(|&x| x.1 == ClientType::DISCORD).unwrap().0.clone();
                         (auth_url, csrf_token) = client
                             .authorize_url(CsrfToken::new_random)
                             .add_scope(Scope::new("email".to_string()))
@@ -70,6 +59,15 @@ pub async fn login(
                             // .set_pkce_challenge(pkce_challenge)
                             .url();
                         
+                    },
+                    ClientType::GOOGLE => {
+                        client = data.iter().find(|&x| x.1 == ClientType::GOOGLE).unwrap().0.clone();
+                        (auth_url, csrf_token) = client
+                            .authorize_url(CsrfToken::new_random)
+                            .add_scope(Scope::new("profile".to_string()))
+                            .add_scope(Scope::new("email".to_string()))
+                            // .set_pkce_challenge(pkce_challenge)
+                            .url();
                     }
                 }
                 return HttpResponse::Ok().json(auth_url.to_string());
@@ -79,102 +77,28 @@ pub async fn login(
     }
 }
 
-// async fn login_callback<T >(
-//     db: Data<MongoRepo>,
-//     data: Data<T>,
-//     req: Query<OAuthRequest>,
-//     session: Session)
-//     where T : Clone {
-//         match validate(&session).await {
-//             Ok(res) => {
-//                 if !res {
-//                     let client = data.client.clone();
-//                     let token_result = client
-//                         .exchange_code(AuthorizationCode::new(req.into_inner().code))
-//                         // .set_pkce_verifier(PkceCodeVerifier::new(verifier.into_inner()))
-//                         .request_async(async_http_client)
-//                         .await.unwrap();
-//                     let url = "https://discord.com/api/users/@me";
-//                     let token_type = token_result.token_type();
-//                     let access_token = token_result.access_token().secret();
-//                     let mut headers = reqwest::header::HeaderMap::new();
-//                     headers.insert(reqwest::header::AUTHORIZATION, format!("{:?} {}", token_type, access_token).parse().unwrap());
-//                     let res = reqwest::Client::new()
-//                         .get(url)
-//                         .headers(headers)
-//                         .send()
-//                         .await
-//                         .unwrap();
-//                     let res_text = res.text().await.unwrap();
-//                     let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
-//                     println!("{:?}", claims);
-//                     session.insert("sub_id", claims.id.clone()).expect("failed to insert sub_id into session");
-//                     println!("Session: {:?}", session.get::<String>("sub_id").unwrap());
-//                     let url = if in_production() {
-//                         env::var("PRODUCTION_URL").unwrap().to_string()
-//                     }
-//                     else{
-//                         env::var("LOCALHOST").unwrap().to_string()
-//                     };
-//                     let response_body = serde_json::to_string(&serde_json::json!({
-//                         "sub_id": format!("{}", claims.id.clone())
-//                     })).expect("Failed to serialize JSON");
-//                     match reqwest::get(format!("http://localhost:8080/view/{}", claims.id.clone())).await {
-//                         Ok(res) => {
-//                             if res.status() != 200 {
-//                                 match db.create_user(
-//                                     claims.id.clone(), 
-//                                     claims.username.to_string(), 
-//                                     claims.email.to_string(), 
-//                                     claims.username.to_string(), 
-//                                     format!("https://cdn.discordapp.com/avatars/{}/{}.png", claims.id.clone(), claims.avatar)).await {
-//                                         Ok(user) => {
-//                                             HttpResponse::Found()
-//                                                 .append_header(("Location", format!("{url}/profile/View")))
-//                                                 .body(response_body)
-//                                         },
-//                                         Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
-//                                 }
-//                             }
-//                             else{
-//                                 HttpResponse::Found()
-//                                     .append_header(("Location", format!("{url}/profile/View")))
-//                                     .body(response_body)
-                                
-//                             }   
-//                         }
-//                         Err(err) => {
-//                             return HttpResponse::InternalServerError().body(err.to_string());
-//                         }
-//                     }
-//                 }
-//                 else{
-//                     return HttpResponse::Ok().json("/");
-//                 }
-//             }
-//             Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
-//         }
-
-//     } 
-
-#[get("/login/callback/discord")]
-pub async fn login_callback_discord(
-    db: Data<MongoRepo>, 
-    discord_data: Data<DiscordOAuthClient>, 
-    req: Query<OAuthRequest>, 
+async fn login_callback(
+    db: Data<MongoRepo>,
+    client_type: ClientType,
+    client: Data<OAuthClient>,
+    req: Query<OAuthRequest>,
     session: Session) -> HttpResponse {
-    match validate(&session).await {
-        Ok(res) => {
-            if !res {
-                let client = discord_data.client.clone();
+        match validate(&session).await {
+            Ok(res) => {
+                if res {
+                    return HttpResponse::InternalServerError().json("Already Signed In");
+                }
                 let token_result = client
                     .exchange_code(AuthorizationCode::new(req.into_inner().code))
                     // .set_pkce_verifier(PkceCodeVerifier::new(verifier.into_inner()))
                     .request_async(async_http_client)
                     .await.unwrap();
-                let url = "https://discord.com/api/users/@me";
                 let token_type = token_result.token_type();
                 let access_token = token_result.access_token().secret();
+                let url = match client_type {
+                    ClientType::DISCORD => "https://discord.com/api/users/@me".to_string(),
+                    ClientType::GOOGLE => format!("https://openidconnect.googleapis.com/v1/userinfo?alt=json&access_token={}", access_token),
+                };
                 let mut headers = reqwest::header::HeaderMap::new();
                 headers.insert(reqwest::header::AUTHORIZATION, format!("{:?} {}", token_type, access_token).parse().unwrap());
                 let res = reqwest::Client::new()
@@ -184,112 +108,74 @@ pub async fn login_callback_discord(
                     .await
                     .unwrap();
                 let res_text = res.text().await.unwrap();
-                let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
-                println!("{:?}", claims);
-                session.insert("sub_id", claims.id.clone()).expect("failed to insert sub_id into session");
-                println!("Session: {:?}", session.get::<String>("sub_id").unwrap());
-                let url = if in_production() {
+                let website_url: String = if in_production() {
                     env::var("PRODUCTION_URL").unwrap().to_string()
                 }
                 else{
                     env::var("LOCALHOST").unwrap().to_string()
                 };
-                let response_body = serde_json::to_string(&serde_json::json!({
-                    "sub_id": format!("{}", claims.id.clone())
-                })).expect("Failed to serialize JSON");
-                match reqwest::get(format!("http://localhost:8080/view/{}", claims.id.clone())).await {
-                    Ok(res) => {
-                        if res.status() != 200 {
-                            match db.create_user(
-                                claims.id.clone(), 
-                                claims.username.to_string(), 
-                                claims.email.to_string(), 
-                                claims.username.to_string(), 
-                                format!("https://cdn.discordapp.com/avatars/{}/{}.png", claims.id.clone(), claims.avatar)).await {
-                                    Ok(user) => {
-                                        HttpResponse::Found()
-                                            .append_header(("Location", format!("{url}/profile/View")))
-                                            .body(response_body)
-                                    },
-                                    Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
-                            }
-                        }
-                        else{
-                            HttpResponse::Found()
-                                .append_header(("Location", format!("{url}/profile/View")))
-                                .body(response_body)
-                            
-                        }   
-                    }
-                    Err(err) => {
-                        return HttpResponse::InternalServerError().body(err.to_string());
+                match client_type {
+                    ClientType::DISCORD => {
+                        let claims: DiscordClaims = serde_json::from_str(&res_text).unwrap();
+                        println!("{:?}", claims);
+                        session.insert("sub_id", claims.id.clone()).unwrap();
+                        let response_body = serde_json::to_string(&serde_json::json!({
+                            "sub_id": format!("{}", claims.id.clone())
+                        })).expect("Failed to serialize JSON");
+                        let image_url  = format!("https://cdn.discordapp.com/avatars/{}/{}.png", claims.id.clone(), claims.avatar.clone());
+                        return create_or_view_if_exists(
+                            db, 
+                            client_type, 
+                            claims.id.clone(), 
+                            claims.username.to_string(), 
+                            claims.email.to_string(), 
+                            image_url, 
+                            website_url, 
+                            response_body
+                        ).await;
+                    },
+                    ClientType::GOOGLE => {
+                        let claims: GoogleClaims = serde_json::from_str(&res_text).unwrap();
+                        println!("{:?}", claims);
+                        session.insert("sub_id", claims.sub.clone()).unwrap();
+                        let response_body = serde_json::to_string(&serde_json::json!({
+                            "sub_id": format!("{}", claims.sub.clone())
+                        })).expect("Failed to serialize JSON");
+                        return create_or_view_if_exists(
+                            db, 
+                            client_type, 
+                            claims.sub.clone(), 
+                            claims.given_name.to_string(), 
+                            claims.email.to_string(), 
+                            claims.picture.to_string(), 
+                            website_url, 
+                            response_body
+                        ).await;
                     }
                 }
             }
-            else{
-                return HttpResponse::Ok().json("/");
-            }
+            Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
         }
-        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
-    }
+    } 
+
+#[get("/login/callback/discord")]
+pub async fn login_callback_discord(
+    db: Data<MongoRepo>, 
+    data: Data<Vec<OAuthClientData>>, 
+    req: Query<OAuthRequest>, 
+    session: Session) -> HttpResponse {
+        let client: Data<OAuthClient> = data.iter().find(|&x| x.1 == ClientType::DISCORD).unwrap().0.clone();
+        login_callback(db, ClientType::DISCORD, client, req, session).await
 }
 
 #[get("/login/callback/google")]
 pub async fn login_callback_google(
-    db: Data<MongoRepo>,
-    google_data: Data<GoogleOAuthClient>, 
+    db: Data<MongoRepo>, 
+    data: Data<Vec<OAuthClientData>>, 
     req: Query<OAuthRequest>, 
     session: Session) -> HttpResponse {
-    match validate(&session).await {
-        Ok(res) => {
-            if !res {
-                let client = google_data.client.clone();
-                let token_result = client
-                    .exchange_code(AuthorizationCode::new(req.into_inner().code))
-                    // .set_pkce_verifier(PkceCodeVerifier::new(verifier.into_inner()))
-                    .request_async(async_http_client)
-                    .await.unwrap();
-                let url = format!("https://openidconnect.googleapis.com/v1/userinfo?alt=json&access_token={}", token_result.access_token().secret());
-                let res = reqwest::get(&url).await.unwrap();
-                let res_text = res.text().await.unwrap();
-                let claims: GoogleClaims = serde_json::from_str(&res_text).unwrap();
-                println!("{:?}", claims);
-                session.insert("sub_id", claims.sub.clone()).expect("failed to insert sub_id into session");
-                
-                let url = if in_production() {
-                    env::var("PRODUCTION_URL").unwrap().to_string()
-                }
-                else{
-                    "http://localhost:3000".to_string()
-                };
-                match reqwest::get(format!("http://localhost:8080/view/{}", claims.sub.clone())).await {
-                    Ok(res) => {
-                        if res.status() != 200 {
-                            match db.create_user(
-                                claims.sub.clone(), 
-                                claims.given_name.to_string(), 
-                                claims.email.to_string(), 
-                                "".to_string(), 
-                                claims.picture).await {
-                                    Ok(user) =>  return HttpResponse::Found().append_header(("Location", url)).finish(),
-                                    Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
-                            }
-                        }
-                        else{
-                            return HttpResponse::Found().append_header(("Location", url)).finish();
-                        }   
-                    }
-                    Err(err) => {
-                        return HttpResponse::InternalServerError().body(err.to_string());
-                    }
-                }
-            }
-            else{
-                return HttpResponse::Ok().json("/");
-            }
-        }
-        Err(err) => return HttpResponse::InternalServerError().body(err.to_string()),
-    }
+        let client: Data<OAuthClient> = data.iter().find(|&x| x.1 == ClientType::GOOGLE).unwrap().0.clone();
+        login_callback(db, ClientType::GOOGLE, client, req, session).await
 }
 
 #[get("/get_session")]
@@ -335,4 +221,38 @@ pub fn in_production() -> bool {
             return false;
         },
     }
+}
+
+async fn create_or_view_if_exists(
+    db: Data<MongoRepo>, 
+    client_type: ClientType,
+    sub_id: String, 
+    username: String,
+    email: String,
+    image_url: String,
+    website_url: String, 
+    response_body: String) -> HttpResponse {
+    match reqwest::get(format!("http://localhost:8080/view/{}", sub_id)).await {
+        Ok(res) => {
+            // Check if user exists in database
+            if res.status() == 200 {
+                direct_user_to_profile(website_url, response_body)
+            }
+            else{
+                match db
+                    .create_user(sub_id, username.clone(), email, if client_type == ClientType::DISCORD {username} else {"".to_string()}, image_url)
+                    .await {
+                        Ok(_) => direct_user_to_profile(website_url, response_body),
+                        Err(err) => HttpResponse::InternalServerError().body(err.to_string()), 
+                    }
+            }   
+        }
+        Err(err) => return HttpResponse::InternalServerError().body(err.to_string())
+    }
+}
+
+fn direct_user_to_profile(website_url: String, response_body: String) -> HttpResponse {
+    HttpResponse::Found()
+        .append_header(("Location", format!("{website_url}/profile/View")))
+        .body(response_body)
 }

@@ -14,6 +14,9 @@ use oauth2::{
 };
 use actix_web::web::Data;
 
+pub type OAuthClient = BasicClient;
+pub struct OAuthClientData(pub Data<OAuthClient>, pub ClientType);
+
 fn get_oauth_variables(client_id: &str, client_secret: &str, auth_url: &str, token_url: &str, redirect_url: &str) -> [String; 5]{
     let client_id = match env::var(client_id) {
         Ok(v) => v.to_string(),
@@ -56,15 +59,12 @@ fn get_discord_oauth_variables() -> [String; 5]{
     "DISCORD_OAUTH_REDIRECT_URL")
 }
 
-type OAuthClient = BasicClient;
-type OAuthClientData = Data<OAuthClient>;
-
 pub trait ClientData {
-    fn new_client_data(oauth_variables: [String; 5]) -> Data<OAuthClient>;
+    fn new_client_data(oauth_variables: [String; 5], client_type: ClientType) -> OAuthClientData;
 }
 
 impl ClientData for OAuthClient {
-    fn new_client_data(oauth_variables: [String; 5]) -> Data<OAuthClient> {
+    fn new_client_data(oauth_variables: [String; 5], client_type: ClientType) -> OAuthClientData {
         let [client_id, client_secret, auth_url, token_url, redirect_url] = oauth_variables;
         let client = BasicClient::new(
             ClientId::new(client_id),
@@ -73,16 +73,16 @@ impl ClientData for OAuthClient {
             Some(TokenUrl::new(token_url).unwrap()))
             .set_redirect_uri(RedirectUrl::new(redirect_url).unwrap());
         let oauth_client_data = Data::new(client);
-        oauth_client_data
+        OAuthClientData(oauth_client_data, client_type)
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")] 
 #[serde(tag = "client_type", content = "value")]
 pub enum ClientType{
-    Google,
-    Discord
+    GOOGLE,
+    DISCORD
 }
 
 pub fn get_client_data(client_types: Vec<ClientType>) -> Vec<OAuthClientData> {
@@ -91,8 +91,8 @@ pub fn get_client_data(client_types: Vec<ClientType>) -> Vec<OAuthClientData> {
         .iter()
         .for_each(|client_type| {
             let oauth_client_data = match client_type {
-                ClientType::Google => OAuthClient::new_client_data(get_google_ouath_variables()),
-                ClientType::Discord => OAuthClient::new_client_data(get_discord_oauth_variables())
+                ClientType::GOOGLE => OAuthClient::new_client_data(get_google_ouath_variables(), ClientType::GOOGLE),
+                ClientType::DISCORD => OAuthClient::new_client_data(get_discord_oauth_variables(), ClientType::DISCORD)
             };
             client_data.push(oauth_client_data);
         });
