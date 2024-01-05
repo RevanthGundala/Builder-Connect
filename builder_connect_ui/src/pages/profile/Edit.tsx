@@ -5,10 +5,12 @@ import { useLocalStorage } from "usehooks-ts";
 import dynamic from "next/dynamic";
 import ParticleBackground from "@/components/ParticleBackground";
 import useProfile from "@/libs/useProfile";
+import useReadSession from "@/libs/useReadSession";
 
 export default function Edit() {
   const router = useRouter();
   const [profile, set_profile] = useProfile(undefined);
+  const { sub_id } = useReadSession();
   const [image_url, set_image_url] = useState("");
   const [username, set_username] = useState("");
   const [email, set_email] = useState("");
@@ -22,7 +24,6 @@ export default function Edit() {
   const [project_interests, set_project_interests] = useState("");
   const [personality_interests, set_personality_interests] = useState("");
   const [skills, set_skills] = useState("");
-  const [sub_id, set_sub_id] = useLocalStorage("sub_id", "");
   const [is_connected, set_is_connected] = useState(false);
   const [is_loading, set_is_loading] = useState(false);
   const Navbar = dynamic(() => import("../../components/Navbar"), {

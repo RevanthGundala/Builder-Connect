@@ -184,7 +184,7 @@ pub async fn get_session(session: Session) -> HttpResponse {
         Ok(message_option) => {
             match message_option {
                 Some(message) => HttpResponse::Ok().json(message),
-                None => HttpResponse::NotFound().body("Not set.")
+                None => HttpResponse::NotFound().json("Not set.")
             }
         }
 	    Err(_) => HttpResponse::InternalServerError().body("Error.")

@@ -54,8 +54,7 @@ async fn main() -> std::io::Result<()> {
                 )
                 // allow the cookie to be accessed from javascript
                 .cookie_http_only(false)
-                // allow the cookie only from the current domain
-                .cookie_same_site(SameSite::Strict)
+                .cookie_same_site(SameSite::None)
                 .build(),
             )
             .service(view_profile)
