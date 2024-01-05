@@ -1,4 +1,4 @@
-use crate::{models::user_model::{User, Room}, repository::mongodb_repo::MongoRepo};
+use crate::{models::user_model::{User, Room}, repository::mongodb_repo::MongoRepo, api::auth::in_production};
 use actix_web::{
     web::{Data, Path},
     put,
@@ -92,18 +92,25 @@ pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> H
                 
                 let (updated_user_username, other_user_username) = (updated_user.username.clone(), other_user.username.clone());
                 let (updated_user_email, other_user_email) = (updated_user.email.clone(), other_user.email.clone());
+                let url = if in_production() {
+                    env::var("PRODUCTION_URL").unwrap().to_string()
+                }
+                else{
+                    env::var("LOCALHOST").unwrap().to_string()
+                };
+                let unsubscribe_message = format!("If you would like to stop receiving these emails, please unsubscribe at {url}/unsubscribe");
                 if db.exists_in_mailing_list(&updated_user_email).await {
                     let _ = send_email(
                         updated_user_email,
                         "You have a new match!".to_string(),
-                        format!("You have a new match with {other_user_username}! You can now chat with them at http://localhost:3000\nIf you would like to stop receiving these emails, please unsubscribe at http://localhost:3000/unsubscribe"),
+                        format!("You have a new match with {other_user_username}! {unsubscribe_message}"),
                     ).await.expect("Email error");
                 }
                 if db.exists_in_mailing_list(&other_user_email).await {
                     let _ = send_email(
                         other_user_email,
                         "You have a new match!".to_string(),
-                        format!("You have a new match with {updated_user_username}! You can now chat with them at http://localhost:3000\nIf you would like to stop receiving these emails, please unsubscribe at http://localhost:3000/unsubscribe"),
+                        format!("You have a new match with {updated_user_username}! {unsubscribe_message}"),
                     ).await.expect("Email error");
                 }
             },
@@ -147,7 +154,7 @@ pub async fn recommend_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResp
     if id.is_empty() {
         return HttpResponse::BadRequest().body("invalid ID");
     }
-    let user = db.get_user(&id).await.expect("DB Error");
+    let user = db.get_user(&id).await.unwrap();
 
     // get the the top 5 users with the highest cosine similarity
     // ensure they are not already matched + swiped on
@@ -223,7 +230,7 @@ pub async fn send_email(
     to: String,
     subject: String,
     body: String) -> Result<(), reqwest::Error> { 
-    let email_username = match env::var("BUILDER_CONNECT_EMAIL") {
+    let email_username = match env::var("BUILDWORK_EMAIL") {
         Ok(v) => v.to_string(),
         Err(_) => format!("Error loading email username"),
     };
@@ -234,7 +241,7 @@ pub async fn send_email(
         .header(ContentType::TEXT_PLAIN)
         .body(body)
         .unwrap();
-    let email_password = match env::var("BUILDER_CONNECT_EMAIL_PASSWORD") {
+    let email_password = match env::var("BUILDWORK_EMAIL_PASSWORD") {
         Ok(v) => v.to_string(),
         Err(_) => format!("Error loading email password"),
     };

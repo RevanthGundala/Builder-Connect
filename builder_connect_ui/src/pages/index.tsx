@@ -1,6 +1,5 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { NextRouter, useRouter } from "next/router";
 import Email from "@/components/Email";
 import Link from "next/link";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -36,7 +35,7 @@ const LandingPage = () => {
                 className="w-72 h-72"
               />
             </div>
-            <h1 className="text-7xl text-white pt-20">Builder Connect</h1>
+            <h1 className="text-7xl text-white pt-20">BuildWork</h1>
             <TypeAnimation
               className="text-2xl text-gray-400 mt-4"
               sequence={[

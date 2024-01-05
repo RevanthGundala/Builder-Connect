@@ -50,12 +50,12 @@ export default function SignIn() {
           <div className="p-4 flex flex-row justify-center">
             <Authenticate />
           </div>
-          <p className="text-sm text-gray-500 mt-4">
+          {/* <p className="text-sm text-gray-500 mt-4">
             Don't have an account?{" "}
             <a href="#" className="text-black">
               Sign up
             </a>
-          </p>
+          </p> */}
         </div>
       </div>
     </>

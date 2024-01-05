@@ -14,7 +14,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <main className={poppins.className}>
       <Component {...pageProps} />
-      {/* <SpeedInsights /> */}
+      <SpeedInsights />
     </main>
   );
 }
