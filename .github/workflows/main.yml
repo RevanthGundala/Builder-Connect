@@ -13,7 +13,16 @@ jobs:
   backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
       - name: Build
         working-directory: ./builder_connect
         run: cargo build --verbose
@@ -49,6 +58,9 @@ jobs:
           # file: ./builder_connect/Dockerfile
           push: true
           # tags: ${{ secrets.DOCKER_USERNAME }}/builder-connect:latest
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
 
   deploy:
     needs: [backend, frontend, docker]
