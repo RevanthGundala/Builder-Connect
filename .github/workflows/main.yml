@@ -18,6 +18,7 @@ jobs:
         working-directory: ./builder_connect
         run: cargo build --verbose
       - name: Run tests
+        working-directory: ./builder_connect
         run: cargo test --verbose
 
   frontend:
@@ -25,10 +26,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
+        working-directory: ./builder_connect_ui
         run: npm install
       - name: Build
+        working-directory: ./builder_connect_ui
         run: npm run build
       - name: Run tests
+        working-directory: ./builder_connect_ui
         run: npm run test
 
   docker:
@@ -42,9 +46,8 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push Docker images
-        uses: docker/bake-action@v2.3.0
+        uses: docker/build-push-action@v5
         with:
-          files: .
           push: true
 
   deploy:
