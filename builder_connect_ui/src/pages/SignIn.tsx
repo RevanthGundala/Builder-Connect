@@ -8,9 +8,7 @@ export default function SignIn() {
       <ParticleBackground />
       <div className="pt-24 bg-cover bg-center relative mx-auto">
         <div className="bg-white p-8 rounded shadow-md w-96 container mx-auto relative z-10 text-center">
-          <h1 className="text-black text-center text-2xl mb-4">
-            Builder Connect
-          </h1>
+          <h1 className="text-black text-center text-2xl mb-4">Sign In</h1>
           <form>
             <div className="mb-4">
               <label

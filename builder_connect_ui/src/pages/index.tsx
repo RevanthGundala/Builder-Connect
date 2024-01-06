@@ -35,7 +35,7 @@ const LandingPage = () => {
                 className="w-72 h-72"
               />
             </div>
-            <h1 className="text-7xl text-white pt-20">BuildWork</h1>
+            <h1 className="text-7xl text-white pt-20">The Buildwork</h1>
             <TypeAnimation
               className="text-2xl text-gray-400 mt-4"
               sequence={[

@@ -6,17 +6,17 @@ export default function Faq() {
       <h1 className="text-4xl my-20">Frequently Asked Questions</h1>
       <div className="flex flex-col">
         <FaqSection
-          outer_text="What is BuildWork?"
-          inner_text="BuildWork is a platform dedicated to connecting the next generation of builders. We aim to help ambitious people find others with similar interests to build projects together."
+          outer_text="What is The Buildwork?"
+          inner_text="The Buildwork is a platform dedicated to connecting the next generation of builders. We aim to help ambitious people find others with similar interests to build projects together."
         />
         <FaqSection
-          outer_text="Who is BuildWork For?"
+          outer_text="Who is The Buildwork For?"
           inner_text="If you want to work on a side project or have an amazing idea for a startup and don't have the right person to work with, then
-          BuildWork is for you!"
+          The Buildwork is for you!"
         />
         <FaqSection
           outer_text="How does it work?"
-          inner_text="BuildWork uses a matching algorithm to connect people who have
+          inner_text="The Buildwork uses a matching algorithm to connect people who have
         similar interests. Fill out your profile, and find someone to build with!"
         />
         <FaqSection
