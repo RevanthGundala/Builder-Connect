@@ -12,6 +12,7 @@
     "@heroicons/react": "^2.0.18",
     "@react-oauth/google": "^0.11.1",
     "@uidotdev/usehooks": "^2.4.1",
+    "@vercel/analytics": "^1.1.1",
     "@vercel/speed-insights": "^1.0.1",
     "aos": "^2.3.4",
     "framer-motion": "^10.16.16",
