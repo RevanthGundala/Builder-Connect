@@ -59,11 +59,11 @@ jobs:
           # file: ./builder_connect/Dockerfile
           push: true
           # tags: ${{ secrets.DOCKER_USERNAME }}/builder-connect:latest
-          set: |
-            *.cache-from=type=gha
-            *.cache-to=type=gha,mode=max
-        env:
-          COMPOSE_PROFILES: "*"
+          # set: |
+          #   *.cache-from=type=gha
+          #   *.cache-to=type=gha,mode=max
+        # env:
+        #   COMPOSE_PROFILES: "*"
 
   deploy:
     needs: [frontend, docker]
