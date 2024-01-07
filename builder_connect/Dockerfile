@@ -1,4 +1,4 @@
-FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
+FROM lukemathwalker/cargo-chef:0.1.55-rust-slim-bullseye AS chef
 WORKDIR /app
 
 RUN apt-get update && apt install -y openssl && apt install -y ca-certificates
