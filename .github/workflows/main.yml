@@ -42,7 +42,6 @@ jobs:
         run: npm run build
 
   docker:
-    needs: backend
     runs-on: ubuntu-latest
     steps:
       - name: Login to DockerHub
@@ -61,7 +60,7 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/builder_connect:latest
 
   deploy:
-    needs: [frontend, docker]
+    needs: [backend, frontend, docker]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
