@@ -53,15 +53,17 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push Docker images
-        uses: docker/build-push-action@v5
+        working-directory: ./builder_connect
+        run: docker compose up --build
+        # uses: docker/build-push-action@v5
         # uses: docker/bake-action@v4
-        with:
-          file: ./builder_connect/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/builder-connect:latest
-          # set: |
-          #   *.cache-from=type=gha
-          #   *.cache-to=type=gha,mode=max
+        # with:
+        # file: ./builder_connect/Dockerfile
+        # push: true
+        # tags: ${{ secrets.DOCKER_USERNAME }}/builder-connect:latest
+        # set: |
+        #   *.cache-from=type=gha
+        #   *.cache-to=type=gha,mode=max
 
   deploy:
     needs: [frontend, docker]
