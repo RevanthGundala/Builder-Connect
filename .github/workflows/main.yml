@@ -50,11 +50,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
         with:
-          context: ./builder_connect
           file: ./builder_connect/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/builder_connect:latest
