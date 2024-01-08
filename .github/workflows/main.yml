@@ -41,26 +41,27 @@ jobs:
         working-directory: ./builder_connect_ui
         run: npm run build
 
-  # docker:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Login to DockerHub
-  #       uses: docker/login-action@v1
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
-  #     - name: Build and push
-  #       # uses: docker/bake-action@v4
-  #       uses: docker/build-push-action@v5
-  #       with:
-  #         file: ./builder_connect/Dockerfile
-  #         push: true
-  #         tags: ${{ secrets.DOCKER_USERNAME }}/builder-connect:latest
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        # TODO: Figure out why its not working
+      # - name: Build and push
+      #   # uses: docker/bake-action@v4
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     file: ./builder_connect/Dockerfile
+      #     push: true
+      #     tags: ${{ secrets.DOCKER_USERNAME }}/builder-connect:latest
 
   deploy:
-    needs: [backend, frontend]
+    needs: [backend, frontend, docker]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
