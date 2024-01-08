@@ -83,24 +83,24 @@ jobs:
           username: root
           password: Chikki092502!
           script: |
-            export MONGOURI=${{ secrets.MONGOURI }}
-            export HUGGING_FACE_API_KEY=${{ secrets.HUGGING_FACE_API_KEY }}
-            export HUGGING_FACE_API_URL=${{ secrets.HUGGING_FACE_API_URL }}
-            export GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
-            export GOOGLE_OAUTH_CLIENT_SECRET=${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
-            export GOOGLE_OAUTH_TOKEN_URL=${{ secrets.GOOGLE_OAUTH_TOKEN_URL }}
-            export GOOGLE_OAUTH_AUTH_URL=${{ secrets.GOOGLE_OAUTH_AUTH_URL }}
-            export GOOGLE_OAUTH_REDIRECT_URL=${{ secrets.GOOGLE_OAUTH_REDIRECT_URL }}
-            export DISCORD_OAUTH_TOKEN_URL=${{ secrets.DISCORD_OAUTH_TOKEN_URL }}
-            export DISCORD_OAUTH_AUTH_URL=${{ secrets.DISCORD_OAUTH_AUTH_URL }}
-            export DISCORD_OAUTH_CLIENT_ID=${{ secrets.DISCORD_OAUTH_CLIENT_ID }}
-            export DISCORD_OAUTH_CLIENT_SECRET=${{ secrets.DISCORD_OAUTH_CLIENT_SECRET }}
-            export DISCORD_OAUTH_REDIRECT_URL=${{ secrets.DISCORD_OAUTH_REDIRECT_URL }}
-            export BUILDWORK_EMAIL=${{ secrets.BUILDWORK_EMAIL }}
-            export BUILDWORK_EMAIL_PASSWORD=${{ secrets.BUILDWORK_EMAIL_PASSWORD }}
-            export PRODUCTION_URL=${{ secrets.PRODUCTION_URL }}
-            export LOCALHOST=${{ secrets.LOCALHOST }}
-            export IN_PRODUCTION=${{ secrets.IN_PRODUCTION }}
+            export MONGOURI=mongodb+srv://RevanthGundala:uJyFq49UKPp1SQUE@builderconnectdb.214izk0.mongodb.net/?retryWrites=true&w=majority
+            export HUGGING_FACE_API_KEY=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
+            export HUGGING_FACE_API_URL=https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2
+            export GOOGLE_OAUTH_CLIENT_ID=969436684497-k1k6fm7tnrsrhs8tvucn9ql0qi8bl2sn.apps.googleusercontent.com
+            export GOOGLE_OAUTH_CLIENT_SECRET=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
+            export GOOGLE_OAUTH_TOKEN_URL=https://www.googleapis.com/oauth2/v4/token
+            export GOOGLE_OAUTH_AUTH_URL=https://accounts.google.com/o/oauth2/v2/auth
+            export GOOGLE_OAUTH_REDIRECT_URL=http://localhost:8080/login/callback/google
+            export DISCORD_OAUTH_TOKEN_URL=https://discord.com/api/oauth2/token
+            export DISCORD_OAUTH_AUTH_URL=https://discord.com/api/oauth2/authorize
+            export DISCORD_OAUTH_CLIENT_ID=403767917302513665
+            export DISCORD_OAUTH_CLIENT_SECRET=wpV0QRE2pypB4-fEO6H8N7wvUX4dblgJ
+            export DISCORD_OAUTH_REDIRECT_URL=http://localhost:8080/login/callback/discord
+            export BUILDWORK_EMAIL=thebuildwork@gmail.com
+            export BUILDWORK_EMAIL_PASSWORD=ljjxvhnsicexasle
+            export PRODUCTION_URL=https://www.thebuildwork.com
+            export LOCALHOST=http://localhost:3001
+            export IN_PRODUCTION=true
             docker-compose down
             docker-compose pull
             docker-compose up -d
