@@ -9,7 +9,9 @@ services:
     ports:
       - "6379:6379"
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
