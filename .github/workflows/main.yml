@@ -55,7 +55,8 @@ jobs:
         uses: docker/bake-action@v4
         with:
           push: true
-          workdir: "./builder_connect"
+        env:
+          COMPOSE_PROFILES: "*"
 
   deploy:
     needs: [backend, frontend, docker]
