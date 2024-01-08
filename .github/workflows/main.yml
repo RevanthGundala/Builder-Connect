@@ -60,6 +60,7 @@ jobs:
       #     push: true
       #     tags: ${{ secrets.DOCKER_USERNAME }}/builder-connect:latest
 
+      # TODO: Switch from hardcode to secrets
   deploy:
     needs: [backend, frontend, docker]
     runs-on: ubuntu-latest
@@ -83,6 +84,7 @@ jobs:
           username: root
           password: Chikki092502!
           script: |
+            cd ./builder_connect
             export MONGOURI=mongodb+srv://RevanthGundala:uJyFq49UKPp1SQUE@builderconnectdb.214izk0.mongodb.net/?retryWrites=true&w=majority
             export HUGGING_FACE_API_KEY=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
             export HUGGING_FACE_API_URL=https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2
