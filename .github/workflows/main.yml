@@ -51,19 +51,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Build and push Docker images
-        uses: docker/build-push-action@v5
+      - name: Build and push
+        uses: docker/bake-action@v4
         with:
-          context: .
-          file: ./builder_connect/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/builder_connect:latest
-        # uses: docker/bake-action@v4
-        # with:
-        #   push: true
-        #   set: |
-        #     *.cache-from=type=gha
-        #     *.cache-to=type=gha,mode=max
 
   deploy:
     needs: [backend, frontend, docker]
