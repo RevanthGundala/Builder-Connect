@@ -81,7 +81,7 @@ jobs:
         with:
           host: ${{ vars.DROPLET_IP }}
           username: root
-          password: ${{ secrets.DROPLET_PASSWORD }}
+          password: Chikki092502!
           script: |
             export MONGOURI=${{ secrets.MONGOURI }}
             export HUGGING_FACE_API_KEY=${{ secrets.HUGGING_FACE_API_KEY }}
