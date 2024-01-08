@@ -2,7 +2,7 @@ FROM messense/rust-musl-cross:x86_64-musl as chef
 RUN cargo install cargo-chef
 WORKDIR /app
 
-RUN apt-get update && apt install -y openssl && apt install -y ca-certificates
+# RUN apt-get update && apt install -y openssl && apt install -y ca-certificates
 
 FROM chef AS planner
 COPY . .
