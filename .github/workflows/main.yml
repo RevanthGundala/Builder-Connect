@@ -77,6 +77,9 @@ jobs:
       - name: Copy docker-compose.yml to droplet
         working-directory: ./builder_connect
         run: sshpass -p Chikki092502! scp -o StrictHostKeyChecking=no compose.yaml root@${{ vars.DROPLET_IP }}:~
+      - name: Copy Dockerfile to droplet
+        working-directory: ./builder_connect
+        run: sshpass -p Chikki092502! scp -o StrictHostKeyChecking=no Dockerfile root@${{ vars.DROPLET_IP }}:~
       - name: Deploy
         uses: appleboy/ssh-action@master
         with:
@@ -84,6 +87,7 @@ jobs:
           username: root
           password: Chikki092502!
           script: |
+            cd ~
             export MONGOURI=mongodb+srv://RevanthGundala:uJyFq49UKPp1SQUE@builderconnectdb.214izk0.mongodb.net/?retryWrites=true&w=majority
             export HUGGING_FACE_API_KEY=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
             export HUGGING_FACE_API_URL=https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2
