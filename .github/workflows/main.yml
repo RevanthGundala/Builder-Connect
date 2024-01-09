@@ -86,6 +86,7 @@ jobs:
           host: ${{ vars.DROPLET_IP }}
           username: root
           password: Chikki092502!
+          command_timeout: 200m
           script: |
             cd ~
             export MONGOURI=mongodb+srv://RevanthGundala:uJyFq49UKPp1SQUE@builderconnectdb.214izk0.mongodb.net/?retryWrites=true&w=majority
