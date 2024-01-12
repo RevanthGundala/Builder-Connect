@@ -22,7 +22,6 @@ export default function Authenticate() {
       } else if (auth_provider === AuthProvider.Google) {
         url += "google";
       }
-      console.log("Url: ", url);
       const response = await fetch(url, { credentials: "include" });
       const login_url = await response.json();
       login_url === "/" ? router.push("/") : router.push(login_url);

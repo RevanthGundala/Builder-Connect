@@ -29,11 +29,11 @@ const LandingPage = () => {
         <Fade>
           <header className="flex flex-col mb-96 mt-40 text-center">
             <div className="flex justify-center">
-              <img
+              {/* <img
                 src="/images/hacker.png"
                 alt="Hacker"
                 className="w-72 h-72"
-              />
+              /> */}
             </div>
             <h1 className="text-7xl text-white pt-20">The Buildwork</h1>
             <TypeAnimation
