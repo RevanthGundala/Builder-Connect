@@ -11,7 +11,7 @@ services:
   api:
     build: .
     ports:
-      - "8080:8080"
+      - "80:8080"
     environment:
       - MONGOURI=${MONGOURI}
       - HUGGING_FACE_API_KEY=${HUGGING_FACE_API_KEY}
