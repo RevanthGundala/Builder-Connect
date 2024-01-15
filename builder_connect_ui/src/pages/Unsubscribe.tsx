@@ -12,7 +12,6 @@ export default function Unsubscribe() {
         method: "DELETE",
         credentials: "include",
       });
-      console.log("res: ", res);
       const data = await res.text();
       console.log(data);
       if (data === "Deleted from mailing list") {
