@@ -16,7 +16,7 @@ export default function Authenticate() {
   async function handle_auth(auth_provider: AuthProvider) {
     try {
       console.log("Signing in...");
-      let url = `${process.env.NEXT_PUBLIC_BASE_URL}/login?client_type=`;
+      let url = `${process.env.NEXT_PUBLIC_BASE_URL}login?client_type=`;
       if (auth_provider === AuthProvider.Discord) {
         url += "discord";
       } else if (auth_provider === AuthProvider.Google) {
