@@ -11,7 +11,9 @@ services:
   api:
     build: .
     ports:
-      - "80:8080"
+      - "8080:8080"
+    networks:
+      - app-network
     environment:
       - MONGOURI=${MONGOURI}
       - HUGGING_FACE_API_KEY=${HUGGING_FACE_API_KEY}
@@ -34,5 +36,26 @@ services:
     depends_on:
       - mongodb
       - redis
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - app-network
+    volumes:
+      - ./data/nginx:/etc/nginx/conf.d
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    depends_on:
+      - api
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+networks:
+  app-network:
+    driver: bridge
 volumes:
   mongodb: {}
