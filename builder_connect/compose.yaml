@@ -10,8 +10,8 @@ services:
       - "6379:6379"
   api:
     build: .
-    # ports:
-    #   - "80:8080"
+    ports:
+      - "8080:8080"
     networks:
       - app-network
     environment:
@@ -36,41 +36,26 @@ services:
     depends_on:
       - mongodb
       - redis
-  webserver:
-    image: nginx:mainline-alpine
-    container_name: webserver
-    restart: unless-stopped
+  nginx:
+    image: nginx:latest
     ports:
       - "80:80"
-    volumes:
-      - web-root:/var/www/html
-      - ./nginx-conf:/etc/nginx/conf.d
-      - certbot-etc:/etc/letsencrypt
-      - certbot-var:/var/lib/letsencrypt
-    depends_on:
-      - api
+      - "443:443"
     networks:
       - app-network
+    volumes:
+      - ./data/nginx:/etc/nginx/conf.d
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    depends_on:
+      - api
   certbot:
     image: certbot/certbot
-    container_name: certbot
     volumes:
-      - certbot-etc:/etc/letsencrypt
-      - certbot-var:/var/lib/letsencrypt
-      - web-root:/var/www/html
-    depends_on:
-      - webserver
-    command: certonly --webroot --webroot-path=/var/www/html --email revanth.gundala@gmail.com --agree-tos --no-eff-email --staging -d api.thebuildwork.com -d www.api.thebuildwork.com
-volumes:
-  mongodb: {}
-  certbot-etc: {}
-  certbot-var: {}
-  web-root:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/revanthgundala/projects/Builder-Connect/builder_connect/views/
-      o: bind
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
 networks:
   app-network:
     driver: bridge
+volumes:
+  mongodb: {}
