@@ -17,6 +17,7 @@ export default function Authenticate() {
     try {
       console.log("Signing in...");
       let url = `${process.env.NEXT_PUBLIC_BASE_URL}/login?client_type=`;
+      console.log("url: ", url);
       if (auth_provider === AuthProvider.Discord) {
         url += "discord";
       } else if (auth_provider === AuthProvider.Google) {
