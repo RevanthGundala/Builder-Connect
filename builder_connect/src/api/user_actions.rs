@@ -68,9 +68,15 @@ pub async fn swipe_right(db: Data<MongoRepo>, path: Path<(String, String)>) -> H
         ..user
     };
     if match_exists(&other_user, &user_id) {
+        let api_url: String = if in_production() {
+            env::var("PRODUCTION_API").unwrap().to_string()
+        }
+        else{
+            env::var("LOCALHOST_API").unwrap().to_string()
+        };
         let uuid = Uuid::new();
         let res = reqwest::Client::new()
-            .get(format!("http://localhost:8080/chat/{uuid}"))
+            .get(format!("{api_url}/chat/{uuid}"))
             .send()
             .await;
         match res {

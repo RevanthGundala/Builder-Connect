@@ -199,7 +199,13 @@ pub async fn logout(session: Session) -> HttpResponse {
 
 pub async fn validate(session: &Session) -> Result<bool, reqwest::Error> {
     if let Some(sub_id) = session.get::<String>("sub_id").unwrap() {
-        let res = reqwest::get(format!("http://localhost:8080/view/{}", sub_id)).await;
+        let api_url: String = if in_production() {
+            env::var("PRODUCTION_API").unwrap().to_string()
+        }
+        else{
+            env::var("LOCALHOST_API").unwrap().to_string()
+        };
+        let res = reqwest::get(format!("{api_url}/view/{sub_id}")).await;
         match res {
             Ok(_) => return Ok(true),
             Err(err) => return Err(err),
@@ -232,7 +238,13 @@ async fn create_or_view_if_exists(
     image_url: String,
     website_url: String, 
     response_body: String) -> HttpResponse {
-    match reqwest::get(format!("http://localhost:8080/view/{}", sub_id)).await {
+        let api_url: String = if in_production() {
+            env::var("PRODUCTION_API").unwrap().to_string()
+        }
+        else{
+            env::var("LOCALHOST_API").unwrap().to_string()
+        };
+    match reqwest::get(format!("{api_url}/view/{sub_id}")).await {
         Ok(res) => {
             // Check if user exists in database
             if res.status() == 200 {

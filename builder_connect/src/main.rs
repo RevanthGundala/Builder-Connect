@@ -34,10 +34,10 @@ async fn main() -> std::io::Result<()> {
     
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:8080")
+            .allowed_origin(env::var("LOCALHOST_API").unwrap().as_str())
             .allowed_origin(env::var("LOCALHOST").unwrap().as_str())
             .allowed_origin(env::var("PRODUCTION_URL").unwrap().as_str())
-            .allowed_origin("api.thebuildwork.com")
+            .allowed_origin(env::var("PRODUCTION_API").unwrap().as_str())
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
             .allowed_header(http::header::CONTENT_TYPE)
