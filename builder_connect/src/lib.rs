@@ -9,7 +9,6 @@ use oauth2::{
     basic::BasicClient,
 };
 use actix_web::web::Data;
-
 pub type OAuthClient = BasicClient;
 pub struct OAuthClientData(pub Data<OAuthClient>, pub ClientType);
 
@@ -31,7 +30,15 @@ fn get_oauth_variables(client_id: &str, client_secret: &str, auth_url: &str, tok
         Err(_) => format!("Error loading env variable"),
     };
     let redirect_url = match env::var(redirect_url) {
-        Ok(v) => v.to_string(),
+        Ok(v) => {
+            let api_url: String = if in_production() {
+                env::var("PRODUCTION_API").unwrap().to_string()
+            }
+            else{
+                env::var("LOCALHOST_API").unwrap().to_string()
+            };
+            format!("{api_url}/{v}")
+        }
         Err(_) => format!("Error loading env variable"),
     };
 
@@ -93,4 +100,19 @@ pub fn get_client_data(client_types: Vec<ClientType>) -> Vec<OAuthClientData> {
             client_data.push(oauth_client_data);
         });
     client_data
+}
+
+pub fn in_production() -> bool {
+    match env::var("IN_PRODUCTION") {
+        Ok(v) => {
+            if v == "true" {
+                return true;
+            }
+            false
+        },
+        Err(e) => {
+            println!("Error checking production: {}", e.to_string());
+            return false;
+        },
+    }
 }

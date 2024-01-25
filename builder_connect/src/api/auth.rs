@@ -214,6 +214,7 @@ pub async fn validate(session: &Session) -> Result<bool, reqwest::Error> {
     Ok(false)
 }
 
+// TODO: Change imports to use lib.rs
 pub fn in_production() -> bool {
     match env::var("IN_PRODUCTION") {
         Ok(v) => {
@@ -238,12 +239,12 @@ async fn create_or_view_if_exists(
     image_url: String,
     website_url: String, 
     response_body: String) -> HttpResponse {
-        let api_url: String = if in_production() {
-            env::var("PRODUCTION_API").unwrap().to_string()
-        }
-        else{
-            env::var("LOCALHOST_API").unwrap().to_string()
-        };
+    let api_url: String = if in_production() {
+        env::var("PRODUCTION_API").unwrap().to_string()
+    }
+    else{
+        env::var("LOCALHOST_API").unwrap().to_string()
+    };
     match reqwest::get(format!("{api_url}/view/{sub_id}")).await {
         Ok(res) => {
             // Check if user exists in database
