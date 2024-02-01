@@ -25,19 +25,24 @@ async fn main() -> std::io::Result<()> {
     let chat_server_data = Data::new(chat_server);
     let client_types: Vec<ClientType> = vec![ClientType::GOOGLE, ClientType::DISCORD];
     let client_data = Data::new(get_client_data(client_types));
-    let redis_conn_string  = if in_production() {
-        "redis:6379".to_string()
+    let (redis_conn_string, website_url, api_url) = if in_production() {
+        ("redis:6379".to_string(), 
+        env::var("PRODUCTION_URL").unwrap(), 
+        "https://api.thebuildwork.com".to_string()
+        // env::var("PRODUCTION_API").unwrap()
+    )
+        
     }
     else{
-        "127.0.0.1:6379".to_string()
+        ("127.0.0.1:6379".to_string(),
+         env::var("LOCALHOST").unwrap(), 
+         env::var("LOCALHOST_API").unwrap())
     };
     
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin(env::var("LOCALHOST_API").unwrap().as_str())
-            .allowed_origin(env::var("LOCALHOST").unwrap().as_str())
-            .allowed_origin(env::var("PRODUCTION_URL").unwrap().as_str())
-            .allowed_origin(env::var("PRODUCTION_API").unwrap().as_str())
+            .allowed_origin(website_url.as_str())
+            .allowed_origin(api_url.as_str())
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
             .allowed_header(http::header::CONTENT_TYPE)
