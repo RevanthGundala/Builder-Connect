@@ -12,6 +12,11 @@ use crate::models::user_model::UserView;
 use mongodb::bson::{doc, oid::ObjectId};
 use chrono::Utc;
 
+#[get("/")]
+pub async fn test_main() -> HttpResponse {
+    HttpResponse::Ok().json("Main Page")
+}
+
 // test
 #[post("/create")]
 pub async fn create_many_users(db: Data<MongoRepo>) -> HttpResponse {

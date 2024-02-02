@@ -64,6 +64,7 @@ async fn main() -> std::io::Result<()> {
                 .cookie_same_site(SameSite::None)
                 .build(),
             )
+            .service(test_main)
             .service(view_profile)
             .service(view_all_profiles)
             .service(edit_profile) 
