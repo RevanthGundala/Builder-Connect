@@ -214,7 +214,6 @@ pub async fn validate(session: &Session) -> Result<bool, reqwest::Error> {
     Ok(false)
 }
 
-// TODO: Change imports to use lib.rs
 pub fn in_production() -> bool {
     match env::var("IN_PRODUCTION") {
         Ok(v) => {

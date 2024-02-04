@@ -37,7 +37,7 @@ fn get_oauth_variables(client_id: &str, client_secret: &str, auth_url: &str, tok
             else{
                 env::var("LOCALHOST_API").unwrap().to_string()
             };
-            format!("{api_url}/{v}")
+            format!("{}/{}", api_url, v.to_string())
         }
         Err(_) => format!("Error loading env variable"),
     };
@@ -102,7 +102,7 @@ pub fn get_client_data(client_types: Vec<ClientType>) -> Vec<OAuthClientData> {
     client_data
 }
 
-pub fn in_production() -> bool {
+fn in_production() -> bool {
     match env::var("IN_PRODUCTION") {
         Ok(v) => {
             if v == "true" {

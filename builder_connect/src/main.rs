@@ -27,18 +27,15 @@ async fn main() -> std::io::Result<()> {
     let client_data = Data::new(get_client_data(client_types));
     let (redis_conn_string, website_url, api_url) = if in_production() {
         ("redis:6379".to_string(), 
-        env::var("PRODUCTION_URL").unwrap(), 
-        "https://api.thebuildwork.com".to_string()
-        // env::var("PRODUCTION_API").unwrap()
-    )
-        
+        env::var("PRODUCTION_URL").unwrap(),    
+        env::var("PRODUCTION_API").unwrap()
+        )
     }
     else{
         ("127.0.0.1:6379".to_string(),
          env::var("LOCALHOST").unwrap(), 
          env::var("LOCALHOST_API").unwrap())
     };
-    
     HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin(website_url.as_str())
