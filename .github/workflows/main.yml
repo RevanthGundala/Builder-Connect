@@ -44,19 +44,24 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: List files in the repository root
         run: ls -l
 
       - name: List files in the builder_connect directory
-        run: ls -l builder_connect
+        run: ls -l builder_connect || echo "builder_connect directory not found"
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
         with:
