@@ -4,6 +4,7 @@ WORKDIR /app
 
 FROM chef AS planner
 COPY . .
+RUN ls -la /app
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder 
