@@ -3,19 +3,21 @@ RUN cargo install cargo-chef
 WORKDIR /app
 
 FROM chef AS planner
-COPY builder_connect/* ./
+# Copy the entire content of builder_connect into /app, preserving the structure
+COPY builder_connect/ ./
 # Debugging to make sure files are added
 RUN ls -la /app
 RUN ls -la /app/src
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder 
-RUN apt-get update && apt install -y openssl && apt install -y ca-certificates
+RUN apt-get update && apt-get install -y openssl ca-certificates
+# Copy the prepared recipe file from the planner stage
 COPY --from=planner /app/recipe.json recipe.json
 # Build dependencies - this is the caching Docker layer!
 RUN cargo chef cook --release --target x86_64-unknown-linux-musl --recipe-path recipe.json
 # Build application
-COPY . .
+COPY builder_connect/ ./
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
 # Final stage: the scratch image
