@@ -101,6 +101,7 @@ jobs:
           username: root
           password: ${{ secrets.DROPLET_PASSWORD }}
           script: |
+            cd ~
             export MONGOURI=${{ secrets.MONGOURI }}
             export HUGGING_FACE_API_KEY=${{ secrets.HUGGING_FACE_API_KEY }}
             export HUGGING_FACE_API_URL=${{ secrets.HUGGING_FACE_API_URL }}
