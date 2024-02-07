@@ -21,6 +21,7 @@ rand = "0.8.4"
 lettre = "0.11"
 cargo-chef = "0.1.62"
 openssl = { version = "0.10.59", features = ["vendored"] }
+eyre = "0.6.12"
 
 
 [dependencies.mongodb]

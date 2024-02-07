@@ -9,9 +9,10 @@ services:
     networks:
       - app-network
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    image: revanthgundala/builder_connect:latest
     ports:
       - "8080:8080"
     networks:
