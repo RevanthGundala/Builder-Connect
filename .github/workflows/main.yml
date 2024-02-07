@@ -91,7 +91,8 @@ jobs:
         run: sudo apt-get install sshpass
       - name: Copy docker-compose.yml to droplet
         env:
-          SSHPASS: ${{ secrets.DROPLET_PASSWORD }}
+          #SSHPASS: ${{ secrets.DROPLET_PASSWORD }}
+          SSHPASS: p&-3Bed??B&_y3E
         run: |
           sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/docker-compose.yml root@${{ vars.DROPLET_IP }}:~
       - name: Deploy
