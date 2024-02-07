@@ -122,7 +122,7 @@ jobs:
             export LOCALHOST_API=${{ secrets.LOCALHOST_API }}
             export PRODUCTION_API=${{ secrets.PRODUCTION_API }}
             export IN_PRODUCTION=${{ secrets.IN_PRODUCTION }}
-            echo "MONGOURI is set to: $MONGOURI"
+            echo "MONGOURI is set to: ${{ vars.MONGOURI }}"
             docker compose down
             docker compose pull
             docker compose up -d
