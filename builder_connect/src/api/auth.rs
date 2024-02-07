@@ -14,7 +14,6 @@ extern crate dotenv;
 use reqwest;
 use crate::{repository::mongodb_repo::MongoRepo, lib::OAuthClient};
 use crate::lib::{ClientType, OAuthClientData};
-use eyre;
 #[derive(Debug, Deserialize, Clone)]
 pub struct OAuthRequest {
     pub code: String,
