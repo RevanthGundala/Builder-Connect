@@ -3,7 +3,8 @@ RUN cargo install cargo-chef
 WORKDIR /app
 
 FROM chef AS planner
-COPY . .
+COPY builder_connect/* ./
+# Debugging to make sure files are added
 RUN ls -la /app
 RUN cargo chef prepare --recipe-path recipe.json
 
