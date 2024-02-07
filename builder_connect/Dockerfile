@@ -6,6 +6,7 @@ FROM chef AS planner
 COPY builder_connect/* ./
 # Debugging to make sure files are added
 RUN ls -la /app
+RUN ls -la /app/src
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder 
