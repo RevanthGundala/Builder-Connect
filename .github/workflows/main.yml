@@ -88,6 +88,11 @@ jobs:
           SSHPASS: ${{ secrets.DROPLET_PASSWORD }}
         run: |
           sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/compose.yaml root@${{ vars.DROPLET_IP }}:~
+          sshpass -v -e ssh -o StrictHostKeyChecking=no root@${{ vars.DROPLET_IP }} "mkdir -p ~/data/nginx"
+          sshpass -v -e ssh -o StrictHostKeyChecking=no root@${{ vars.DROPLET_IP }} "mkdir -p ~/data/certbot"
+          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/data/nginx/nginx.conf root@${{ vars.DROPLET_IP }}:~/data/nginx/
+          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/data/cerbot/conf root@${{ vars.DROPLET_IP }}:~/data/cerbot/
+          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/data/certbot/www root@${{ vars.DROPLET_IP }}:~/data/certbot/
       - name: Deploy
         uses: appleboy/ssh-action@master
         with:
@@ -96,7 +101,7 @@ jobs:
           password: ${{ secrets.DROPLET_PASSWORD }}
           script: |
             cd ~
-            export MONGOURI="${{ secrets.MONGOURI }}"
+            export MONGOURI=${{ secrets.MONGOURI }}
             export HUGGING_FACE_API_KEY=${{ secrets.HUGGING_FACE_API_KEY }}
             export HUGGING_FACE_API_URL=${{ secrets.HUGGING_FACE_API_URL }}
             export GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
