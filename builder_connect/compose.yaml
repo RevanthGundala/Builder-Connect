@@ -12,7 +12,6 @@ services:
     # build:
     #   context: .
     #   dockerfile: Dockerfile
-    command: env
     image: revanthgundala/builder_connect:latest
     ports:
       - "8080:8080"
