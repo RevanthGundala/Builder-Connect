@@ -87,12 +87,12 @@ jobs:
         env:
           SSHPASS: ${{ secrets.DROPLET_PASSWORD }}
         run: |
-          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/compose.yaml root@${{ vars.DROPLET_IP }}:~
           sshpass -v -e ssh -o StrictHostKeyChecking=no root@${{ vars.DROPLET_IP }} "mkdir -p ~/data/nginx"
           sshpass -v -e ssh -o StrictHostKeyChecking=no root@${{ vars.DROPLET_IP }} "mkdir -p ~/data/certbot"
-          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/data/nginx/nginx.conf root@${{ vars.DROPLET_IP }}:~/data/nginx/
-          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/data/cerbot/conf root@${{ vars.DROPLET_IP }}:~/data/cerbot/
-          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/data/certbot/www root@${{ vars.DROPLET_IP }}:~/data/certbot/
+          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/compose.yaml root@${{ vars.DROPLET_IP }}:~
+          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/data/nginx/nginx.conf root@${{ vars.DROPLET_IP }}:~/data/nginx
+          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/data/certbot/conf root@${{ vars.DROPLET_IP }}:~/data/certbot
+          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/data/certbot/www root@${{ vars.DROPLET_IP }}:~/data/certbot
       - name: Deploy
         uses: appleboy/ssh-action@master
         with:
