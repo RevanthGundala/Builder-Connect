@@ -90,7 +90,10 @@ jobs:
       - name: Install sshpass
         run: sudo apt-get install sshpass
       - name: Copy docker-compose.yml to droplet
-        run: sshpass -v -p ${{ secrets.DROPLET_PASSWORD }} scp -o StrictHostKeyChecking=no docker-compose.yml root@${{ secrets.DROPLET_IP }}:~
+        env:
+          SSHPASS: ${{ secrets.DROPLET_PASSWORD }}
+        run: |
+          sshpass -v -e scp -o StrictHostKeyChecking=no builder_connect/docker-compose.yml root@${{ vars.DROPLET_IP }}:~
       - name: Deploy
         uses: appleboy/ssh-action@master
         with:
@@ -115,6 +118,8 @@ jobs:
             export BUILDWORK_EMAIL_PASSWORD=${{ secrets.BUILDWORK_EMAIL_PASSWORD }}
             export PRODUCTION_URL=${{ secrets.PRODUCTION_URL }}
             export LOCALHOST=${{ secrets.LOCALHOST }}
+            export LOCALHOST_API=${{ secrets.LOCALHOST_API }}
+            export PRODUCTION_API=${{ secrets.PRODUCTION_API }}
             export IN_PRODUCTION=${{ secrets.IN_PRODUCTION }}
             docker-compose down
             docker-compose pull
