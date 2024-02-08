@@ -83,7 +83,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Install sshpass
         run: sudo apt-get install sshpass
-      - name: Copy docker-compose.yml to droplet
+      - name: Copy docker-compose.yml and nginx files to droplet
         env:
           SSHPASS: ${{ secrets.DROPLET_PASSWORD }}
         # copy files to droplet
