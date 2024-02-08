@@ -100,9 +100,8 @@ jobs:
           host: ${{ vars.DROPLET_IP }}
           username: root
           password: ${{ secrets.DROPLET_PASSWORD }}
+          #export MONGOURI="${{ secrets.MONGOURI }}"
           script: |
-            cd ~
-            export MONGOURI="${{ secrets.MONGOURI }}"
             export HUGGING_FACE_API_KEY=${{ secrets.HUGGING_FACE_API_KEY }}
             export HUGGING_FACE_API_URL=${{ secrets.HUGGING_FACE_API_URL }}
             export GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
