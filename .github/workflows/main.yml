@@ -86,6 +86,7 @@ jobs:
       - name: Copy docker-compose.yml to droplet
         env:
           SSHPASS: ${{ secrets.DROPLET_PASSWORD }}
+        # copy files to droplet
         run: |
           sshpass -v -e ssh -o StrictHostKeyChecking=no root@${{ vars.DROPLET_IP }} "mkdir -p ~/data/nginx"
           sshpass -v -e ssh -o StrictHostKeyChecking=no root@${{ vars.DROPLET_IP }} "mkdir -p ~/data/certbot"
