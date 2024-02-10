@@ -126,6 +126,7 @@ jobs:
           #   docker compose pull
           #   docker compose up -d
           script: |
+            rm -f .env || true
             echo "MONGOURI=${{ secrets.MONGOURI }}" >> .env
             echo "HUGGING_FACE_API_KEY=${{ secrets.HUGGING_FACE_API_KEY }}" >> .env
             echo "HUGGING_FACE_API_URL=${{ secrets.HUGGING_FACE_API_URL }}" >> .env
